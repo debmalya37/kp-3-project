@@ -99,54 +99,63 @@ function mergeDataFromFiles() {
 
 // Display table for the combined data based on search
 function displayTable(data) {
-    const tableHeaders = document.getElementById('tableHeaders');
     const tableBody = document.getElementById('tableBody');
+    tableBody.innerHTML = ''; // Clear existing contents
 
-    // Clear existing contents
-    tableHeaders.innerHTML = '';
-    tableBody.innerHTML = '';
+    if (!data || data.length === 0) return; // Return if no data
 
-    if (!data) return;
+    // Create an object to group links by username and user ID
+    const groupedData = {};
 
-    // Create table headers
-    headers.forEach(header => {
-        const th = document.createElement('th');
-        th.textContent = header;
-        tableHeaders.appendChild(th);
+    data.forEach(row => {
+        const username = row[0]; // Assuming username is in the first column
+        const userId = row[1]; // Assuming user ID is in the second column
+        const links = row.slice(2); // The rest are links
+
+        if (!groupedData[username]) {
+            groupedData[username] = {
+                userId: userId,
+                links: []
+            };
+        }
+
+        groupedData[username].links.push(...links.filter(link => link)); // Add only non-empty links
     });
 
-    // Add extra header for actions (Edit/Delete)
-    const actionTh = document.createElement('th');
-    actionTh.textContent = 'Actions';
-    tableHeaders.appendChild(actionTh);
+    // Populate the table with grouped data
+    for (const username in groupedData) {
+        const userData = groupedData[username];
+        const userId = userData.userId;
+        const links = userData.links;
 
-    // Populate table rows
-    data.forEach((row, index) => {
-        const tr = document.createElement('tr');
-        headers.forEach((header, headerIndex) => {
-            const cell = document.createElement('td');
-            cell.textContent = row[headerIndex];
-            tr.appendChild(cell);
+        // Create a new row for username
+        const userRow = document.createElement('tr');
+        const usernameCell = document.createElement('td');
+        usernameCell.textContent = username;
+        usernameCell.rowSpan = 2; // Span two rows for username
+        userRow.appendChild(usernameCell);
+        
+        const userIdCell = document.createElement('td');
+        userIdCell.textContent = userId;
+        userRow.appendChild(userIdCell);
+        tableBody.appendChild(userRow);
+
+        // Create a new row for links
+        const linksRow = document.createElement('tr');
+        const linksCell = document.createElement('td');
+
+        // Create columns for each link
+        links.forEach(link => {
+            const linkCol = document.createElement('div'); // Use divs to create columns
+            linkCol.textContent = link;
+            linksCell.appendChild(linkCol);
         });
 
-        // Add action buttons
-        const actionsCell = document.createElement('td');
-        const editBtn = document.createElement('button');
-        editBtn.textContent = 'Edit';
-        editBtn.onclick = () => openModal(index); // Call openModal on click
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.onclick = () => deleteRow(index); // Call deleteRow on click
-
-        actionsCell.appendChild(editBtn);
-        actionsCell.appendChild(deleteBtn);
-        tr.appendChild(actionsCell);
-
-        tableBody.appendChild(tr);
-    });
+        linksRow.appendChild(linksCell);
+        tableBody.appendChild(linksRow);
+    }
 }
 
-// Search functionality
 // Search functionality
 document.getElementById('searchInput').addEventListener('input', function () {
     const searchTerm = this.value.toLowerCase();
@@ -159,7 +168,7 @@ document.getElementById('searchInput').addEventListener('input', function () {
         const filteredData = combinedData.filter(row =>
             row.some(cell => cell && cell.toString().toLowerCase().includes(searchTerm)) // Convert cell to string
         );
-        
+
         console.log('Filtered Data:', filteredData); // Debugging line
         displayTable(filteredData); // Display filtered rows
     }
