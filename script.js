@@ -203,7 +203,6 @@ function updateFileSelector() {
 }
 
 // Open modal for editing/adding a row
-// Open modal for editing/adding a row
 function openModal(rowIndex = null) {
     const modal = document.getElementById('addRowModal');
     const form = document.getElementById('modalForm');
@@ -264,34 +263,48 @@ document.getElementById('saveRow').addEventListener('click', function () {
 document.getElementById('closeModal').addEventListener('click', function () {
     document.getElementById('addRowModal').style.display = 'none'; // Hide the modal
 });
+// Open modal for adding a new row (no rowIndex means adding a new row)
+document.getElementById('addRow').addEventListener('click', function () {
+    openModal(); // This will open the modal without pre-filling data
+});
 
-
-// Save the new or edited row
-// document.getElementById('saveRow').addEventListener('click', function () {
-//     const form = document.getElementById('modalForm');
-//     const newRow = [];
+// Open modal for editing/adding a row
+function openModal(rowIndex = null) {
+    const modal = document.getElementById('addRowModal');
+    const form = document.getElementById('modalForm');
+    const modalTitle = document.getElementById('modalTitle');
     
-//     headers.forEach(header => {
-//         const input = form.querySelector(`input[name="${header}"]`);
-//         newRow.push(input.value);
-//     });
+    form.innerHTML = ''; // Clear existing form inputs
+    editRowIndex = rowIndex;
 
-//     if (editRowIndex !== null) {
-//         // Edit the existing row
-//         combinedData[editRowIndex] = newRow;
-//     } else {
-//         // Add a new row
-//         combinedData.push(newRow);
-//     }
+    // If editing a row, pre-fill form with existing row data
+    if (rowIndex !== null) {
+        modalTitle.textContent = 'Edit Row';
+        headers.forEach((header, index) => {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = header;
+            input.value = combinedData[rowIndex][index];
+            form.appendChild(input);
+        });
+    } else {
+        // Reset the form for adding a new row
+        modalTitle.textContent = 'Add New Row';
+        headers.forEach(header => {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = header;
+            input.placeholder = `Enter ${header}`;
+            form.appendChild(input);
+        });
+    }
 
-//     displayTable(combinedData); // Refresh table
-//     document.getElementById('addRowModal').style.display = 'none'; // Close modal
-//     saveToLocalStorage(); // Save updated data to localStorage
-// });
+    modal.style.display = 'block'; // Show the modal
+}
 
 // Delete a row
 function deleteRow(rowIndex) {
-    combinedData.splice(rowIndex, 1); // Remove the row from the combined data
+    combinedData.splice(rowIndex, 1); // Remove the row from data
     displayTable(combinedData); // Refresh the table
     saveToLocalStorage(); // Save updated data to localStorage
 }

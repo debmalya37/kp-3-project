@@ -63,20 +63,18 @@
 
     <!-- Modal for adding/editing rows -->
     <!-- Modal for Adding/Editing a Row -->
-<div id="addRowModal" class="modal">
-    <div class="modal-header">
-        <span id="modalTitle">Add/Edit Row</span>
+    <div id="addRowModal" class="modal">
+        <div class="modal-content">
+            <span id="closeModal" class="close-btn">&times;</span>
+            <h2 id="modalTitle">Add/Edit Row</h2>
+            <form id="modalForm">
+                <!-- Form inputs dynamically generated here -->
+            </form>
+            <label for="fileSelector">Select file to add the row to:</label>
+            <select id="fileSelector"></select>
+            <button id="saveRow" class="btn-primary">Save</button>
+        </div>
     </div>
-    <div class="modal-content">
-        <span class="closeModal">&times;</span>
-        <form id="modalForm">
-            <!-- Form inputs will be dynamically added by JavaScript -->
-        </form>
-    </div>
-    <div class="modal-footer">
-        <button id="saveRow" type="button">Save Row</button>
-    </div>
-</div>
 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
