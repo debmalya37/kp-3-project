@@ -253,3 +253,54 @@ button.delete {
 .file-item:hover {
     background-color: #f0f0f0;
 }
+.username {
+    background-color: rgba(255, 99, 71, 0.2); /* Light reddish background */
+    color: #000; /* Black text for better readability */
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.userid {
+    background-color: rgba(100, 149, 237, 0.2); /* Light blue background */
+    color: #000; /* Black text */
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.links {
+    background-color: rgba(144, 238, 144, 0.2); /* Light green background */
+    padding: 10px;
+    border-radius: 3px;
+}
+/* General button styles */
+.btn-secondary {
+    background-color: #4CAF50; /* Green background */
+    color: white; /* White text */
+    border: none; /* No border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px 20px; /* Padding for size */
+    font-size: 16px; /* Font size */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s, transform 0.2s; /* Transition effects */
+}
+
+/* Button hover effect */
+.btn-secondary:hover {
+    background-color: #45a049; /* Darker green on hover */
+    transform: translateY(-2px); /* Lift effect */
+}
+
+/* Button focus effect */
+.btn-secondary:focus {
+    outline: none; /* Remove default outline */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Subtle shadow effect */
+}
+
+/* Optional: Add a secondary button style for different appearance */
+#addRow{
+    background-color: #007BFF; /* Blue background */
+}
+
+.btn-secondary-alt:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}

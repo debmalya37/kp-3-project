@@ -128,14 +128,17 @@ function displayTable(data) {
         const userId = userData.userId;
         const links = userData.links;
 
-        // Create a new row for username
+        // Create a new row for username and user ID
         const userRow = document.createElement('tr');
+
         const usernameCell = document.createElement('td');
+        usernameCell.className = 'username'; // Apply username styling
         usernameCell.textContent = username;
         usernameCell.rowSpan = 2; // Span two rows for username
         userRow.appendChild(usernameCell);
-        
+
         const userIdCell = document.createElement('td');
+        userIdCell.className = 'userid'; // Apply user ID styling
         userIdCell.textContent = userId;
         userRow.appendChild(userIdCell);
         tableBody.appendChild(userRow);
@@ -143,11 +146,13 @@ function displayTable(data) {
         // Create a new row for links
         const linksRow = document.createElement('tr');
         const linksCell = document.createElement('td');
+        linksCell.className = 'links'; // Apply links styling
 
         // Create columns for each link
         links.forEach(link => {
             const linkCol = document.createElement('div'); // Use divs to create columns
             linkCol.textContent = link;
+            linkCol.className = 'links-column'; // Optional: apply a class for additional styling
             linksCell.appendChild(linkCol);
         });
 
@@ -173,6 +178,7 @@ document.getElementById('searchInput').addEventListener('input', function () {
         displayTable(filteredData); // Display filtered rows
     }
 });
+
 
 
 // Export all data as one CSV file
