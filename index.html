@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+
+                <button type="submit" class="btn-primary">Login</button>
+                <p id="loginError" class="error-message" style="display: none;">Invalid username or password</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- CSV Manager -->
+    <div id="csvManager" class="container" style="display: none;">
+        <h1>CSV Data Manager</h1>
+        <div class="main-content">
+            <div class="sidebar">
+                <h2>Uploaded Files</h2>
+                <ul id="fileList">
+                    <!-- Uploaded CSV files will appear here -->
+                </ul>
+                <label for="csvFileInput" class="file-upload-label">Upload CSV Files</label>
+                <input type="file" id="csvFileInput" accept=".csv" multiple>
+            </div>
+
+            <div class="content">
+                <div class="controls">
+                    <input type="text" id="searchInput" placeholder="Search...">
+                    <button id="addRow" class="btn-secondary">Add New Row</button>
+                    <!-- New Export Button for combined CSV export -->
+                    <button id="exportBtn" class="btn-secondary">Export All Data</button>
+                </div>
+
+                <div class="table-container">
+                    <table id="dataTable">
+                        <thead>
+                            <tr id="tableHeaders">
+                                <!-- Table headers will be dynamically added here -->
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Table data will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for adding/editing rows -->
+    <!-- Modal for Adding/Editing a Row -->
+<div id="addRowModal" class="modal">
+    <div class="modal-header">
+        <span id="modalTitle">Add/Edit Row</span>
+    </div>
+    <div class="modal-content">
+        <span class="closeModal">&times;</span>
+        <form id="modalForm">
+            <!-- Form inputs will be dynamically added by JavaScript -->
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button id="saveRow" type="button">Save Row</button>
+    </div>
+</div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
