@@ -98,6 +98,7 @@ function mergeDataFromFiles() {
 }
 
 // Display table for the combined data based on search
+// Display table for the combined data based on search
 function displayTable(data) {
     const tableBody = document.getElementById('tableBody');
     tableBody.innerHTML = ''; // Clear existing contents
@@ -145,30 +146,50 @@ function displayTable(data) {
         const linksCell = document.createElement('td');
 
         // Create columns for each link
-        links.forEach(link => {
+        links.forEach((link, linkIndex) => {
             const linkCol = document.createElement('div'); // Use divs to create columns
-            linkCol.textContent = link;
-            linksCell.appendChild(linkCol);
+            linkCol.style.display = 'flex'; // Flexbox for link and button alignment
+
+            // Add link text
+            const linkText = document.createElement('span');
+            linkText.textContent = link;
+            linkCol.appendChild(linkText);
+
+            // Add delete button for each link
+            const deleteLinkBtn = document.createElement('button');
+            deleteLinkBtn.textContent = 'Delete';
+            deleteLinkBtn.classList.add('btn-delete'); // Add your button class
+            deleteLinkBtn.style.marginLeft = '10px'; // Add some space between link and button
+            deleteLinkBtn.onclick = function() {
+                deleteLink(username, linkIndex); // Pass username and link index to delete the correct link
+            };
+
+            linkCol.appendChild(deleteLinkBtn); // Append delete button to link column
+            linksCell.appendChild(linkCol); // Append the column to the row
         });
 
         linksRow.appendChild(linksCell);
 
-        // Add a delete button to the links row
-        const deleteButtonCell = document.createElement('td');
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Delete';
-        deleteButton.classList.add('btn-secondary'); // Add your button class
-        deleteButton.onclick = function() {
-            // Remove the row from the table
-            tableBody.removeChild(userRow);
-            tableBody.removeChild(linksRow);
-        };
-        
-        deleteButtonCell.appendChild(deleteButton);
-        linksRow.appendChild(deleteButtonCell);
-
         tableBody.appendChild(linksRow);
     }
+}
+function deleteLink(username, linkIndex) {
+    // Find the user's data and remove the specified link
+    Object.keys(uploadedFiles).forEach(fileName => {
+        const fileData = uploadedFiles[fileName];
+        for (let i = 1; i < fileData.length; i++) {
+            if (fileData[i][0] === username) {
+                // Remove the link at the specific index
+                fileData[i].splice(linkIndex + 2, 1); // +2 because the first two columns are username and userId
+                break;
+            }
+        }
+    });
+
+    // After modifying the data, update the table and save the changes
+    combinedData = mergeDataFromFiles(); // Re-merge data from files
+    displayTable(combinedData); // Refresh the table
+    saveToLocalStorage(); // Save updated data to localStorage
 }
 
 // Search functionality
