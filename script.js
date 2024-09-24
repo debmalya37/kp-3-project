@@ -135,7 +135,17 @@ function displayTable(data) {
         usernameCell.textContent = username;
         usernameCell.rowSpan = 2; // Span two rows for username
         userRow.appendChild(usernameCell);
-        
+
+        // Add "Delete Record" button next to the username
+        const deleteRecordBtn = document.createElement('button');
+        deleteRecordBtn.textContent = 'Delete Record';
+        deleteRecordBtn.classList.add('btn-delete-record'); // Add your button class
+        deleteRecordBtn.style.marginLeft = '10px'; // Add space between username and button
+        deleteRecordBtn.onclick = function() {
+            deleteRecord(username); // Pass username to delete the entire record
+        };
+        usernameCell.appendChild(deleteRecordBtn); // Append the delete button to the username cell
+
         const userIdCell = document.createElement('td');
         userIdCell.textContent = userId;
         userRow.appendChild(userIdCell);
@@ -157,9 +167,9 @@ function displayTable(data) {
 
             // Add delete button for each link
             const deleteLinkBtn = document.createElement('button');
-            deleteLinkBtn.textContent = 'Delete';
+            deleteLinkBtn.textContent = 'Delete Link';
             deleteLinkBtn.classList.add('btn-delete'); // Add your button class
-            deleteLinkBtn.style.marginLeft = '10px'; // Add some space between link and button
+            deleteLinkBtn.style.marginLeft = '10px'; // Add space between link and button
             deleteLinkBtn.onclick = function() {
                 deleteLink(username, linkIndex); // Pass username and link index to delete the correct link
             };
@@ -173,6 +183,8 @@ function displayTable(data) {
         tableBody.appendChild(linksRow);
     }
 }
+
+// Function to delete a specific link
 function deleteLink(username, linkIndex) {
     // Find the user's data and remove the specified link
     Object.keys(uploadedFiles).forEach(fileName => {
@@ -191,6 +203,25 @@ function deleteLink(username, linkIndex) {
     displayTable(combinedData); // Refresh the table
     saveToLocalStorage(); // Save updated data to localStorage
 }
+
+// Function to delete the entire record (username, userId, and all links)
+function deleteRecord(username) {
+    // Find the user's data and remove the entire record
+    Object.keys(uploadedFiles).forEach(fileName => {
+        const fileData = uploadedFiles[fileName];
+        // Use a filter function to create a new array without the deleted record
+        const newFileData = fileData.filter(row => row[0] !== username); // Filter out rows that match the username
+
+        // Update the uploadedFiles with the new data (without the deleted record)
+        uploadedFiles[fileName] = newFileData;
+    });
+
+    // After modifying the data, update the table and save the changes
+    combinedData = mergeDataFromFiles(); // Re-merge data from files
+    displayTable(combinedData); // Refresh the table
+    saveToLocalStorage(); // Save updated data to localStorage
+}
+
 
 // Search functionality
 document.getElementById('searchInput').addEventListener('input', function () {

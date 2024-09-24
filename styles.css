@@ -173,6 +173,7 @@ ul {
     display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
+    align-items: center;
 }
 
 .search-input {
@@ -182,6 +183,7 @@ ul {
     border-radius: 20px;
     outline: none;
     font-size: 16px;
+    
 }
 
 /* Table Styles */
@@ -251,7 +253,7 @@ button.delete {
 }
 
 /* Modal Styles */
-.modal {
+/* .modal {
     display: none;
     position: fixed;
     top: 0;
@@ -275,9 +277,127 @@ button.delete {
     position: relative;
     bottom: 200px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+} */
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 200px;
 }
 
+.modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    position: relative;
+    bottom: 200px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease; /* Smooth transition effect */
+    height: auto; /* Automatically adjusts based on content */
+    max-height: 60vh; /* Ensure it doesn't grow too large on small screens */
+    overflow-y: auto; /* Scroll if content overflows */
+}
+
+/* Modal Heading */
+.modal-content h2 {
+    font-size: 22px;
+    margin-bottom: 15px;
+    color: #333;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* Close Button */
 .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: rgb(210, 10, 10);
+    background: none;
+    border: none;
+}
+
+.close-btn:hover {
+    color: #ff5c5c; /* Slight hover effect */
+}
+
+/* Modal Form Styles */
+#modalForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+#modalForm input, #modalForm select {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+#modalForm input:focus, #modalForm select:focus {
+    border-color: #009688;
+}
+
+/* Select Dropdown */
+select#fileSelector {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-top: 10px;
+    transition: border-color 0.3s ease;
+}
+
+select#fileSelector:focus {
+    border-color: #009688;
+}
+
+/* Button */
+button#saveRow {
+    width: 100%;
+    background-color: #007BFF; /* Blue background */
+    color: white; /* White text */
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition effects */
+}
+
+button#saveRow:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: translateY(-2px); /* Lift effect on hover */
+}
+
+button#saveRow:focus {
+    outline: none; /* Remove default focus outline */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Focus shadow effect */
+}
+
+
+/* .close-btn {
     position: absolute;
     top: 10px;
     right: 20px;
@@ -286,9 +406,9 @@ button.delete {
     color: rgb(210, 10, 10);
     background: none;
     border: none;
-}
+} */
 
-.modal-form {
+/* .modal-form {
     margin: 20px 0;
     display: flex;
     flex-direction: column;
@@ -315,7 +435,7 @@ button.delete {
 
 .file-item:hover {
     background-color: #f0f0f0;
-}
+} */
 
 .username {
     background-color: rgba(255, 99, 71, 0.2); /* Light reddish background */
@@ -340,6 +460,7 @@ button.delete {
 /* General button styles */
 .btn-secondary {
     background-color: #4CAF50; /* Green background */
+    margin: 5px;
     color: white; /* White text */
     border: none; /* No border */
     border-radius: 5px; /* Rounded corners */
@@ -459,4 +580,28 @@ input[type="text"], input[type="file"], select {
 .btn-delete:hover {
     background-color: #c9302c; /* Darker red on hover */
     transform: translateY(-2px); /* Lift effect */
+}
+/* General button styles */
+.btn-delete-record {
+    background-color: #ff4c4c; /* Red background to indicate danger */
+    color: white; /* White text color */
+    border: none; /* Remove default border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 5px 5px; /* Button padding for size */
+    font-size: 12px; /* Font size */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Hover state to make the button more interactive */
+.btn-delete-record:hover {
+    background-color: #ff1a1a; /* Darker red on hover */
+    transform: scale(1.05); /* Slightly enlarge the button on hover */
+}
+
+/* Active state when the button is clicked */
+.btn-delete-record:active {
+    background-color: #e60000; /* Even darker red when pressed */
+    transform: scale(0.95); /* Slightly shrink the button on click */
 }
