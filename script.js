@@ -147,6 +147,7 @@ function displayTable(data) {
 }
 
 // Search functionality
+// Search functionality
 document.getElementById('searchInput').addEventListener('input', function () {
     const searchTerm = this.value.toLowerCase();
 
@@ -156,11 +157,14 @@ document.getElementById('searchInput').addEventListener('input', function () {
     } else {
         // Filter the data based on the search term
         const filteredData = combinedData.filter(row =>
-            row.some(cell => cell.toLowerCase().includes(searchTerm))
+            row.some(cell => cell && cell.toString().toLowerCase().includes(searchTerm)) // Convert cell to string
         );
+        
+        console.log('Filtered Data:', filteredData); // Debugging line
         displayTable(filteredData); // Display filtered rows
     }
 });
+
 
 // Export all data as one CSV file
 document.getElementById('exportBtn').addEventListener('click', function () {
@@ -178,6 +182,7 @@ document.getElementById('exportBtn').addEventListener('click', function () {
 });
 
 // Update file list in the sidebar
+// Update file list in the sidebar
 function updateFileList() {
     const fileList = document.getElementById('fileList');
     fileList.innerHTML = '';
@@ -185,9 +190,26 @@ function updateFileList() {
     Object.keys(uploadedFiles).forEach(fileName => {
         const li = document.createElement('li');
         li.textContent = fileName;
+
+        // Create delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = '✖'; // Cross button
+        deleteBtn.onclick = () => deleteFile(fileName); // Call deleteFile function on click
+
+        li.appendChild(deleteBtn); // Append delete button to the list item
         fileList.appendChild(li);
     });
 }
+
+// Delete a file from uploadedFiles and localStorage
+function deleteFile(fileName) {
+    delete uploadedFiles[fileName]; // Remove the file from uploadedFiles
+    saveToLocalStorage(); // Update localStorage
+    updateFileList(); // Refresh the file list
+    combinedData = mergeDataFromFiles(); // Recalculate combinedData
+    displayTable(combinedData); // Refresh the table
+}
+
 
 // Update file selector for adding new rows
 function updateFileSelector() {
