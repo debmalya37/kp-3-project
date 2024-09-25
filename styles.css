@@ -112,6 +112,7 @@ h1 {
 
 .container {
     max-width: 1200px;
+    height: 80vh;
     margin: 40px auto;
     padding: 20px;
     background-color: white;
@@ -436,6 +437,7 @@ button#saveRow:focus {
 }
 #dataTable {
     width: 100%;
+
     border-collapse: collapse; /* Merge borders */
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Shadow for the table */
 }
@@ -564,6 +566,7 @@ td {
     padding: 10px;
     border-radius: 5px; /* More rounded corners */
     text-align: center; /* Center text */
+    border: 2px solid grey;
 }
 
 /* User ID styling */
@@ -573,6 +576,7 @@ td {
     padding: 10px;
     border-radius: 5px;
     text-align: center; /* Center text */
+    border: 1px solid black;
 }
 
 /* Links styling */
@@ -589,6 +593,7 @@ td {
     color: #007bff; /* Bootstrap link color */
     text-decoration: none; /* No underline */
     padding: 5px 0; /* Spacing between links */
+    margin: 1px;
 }
 
 .links a:hover {
@@ -603,6 +608,7 @@ td {
     border-radius: 5px;
     padding: 5px 10px;
     cursor: pointer; /* Pointer cursor on hover */
+    
 }
 
 .btn-delete:hover {
