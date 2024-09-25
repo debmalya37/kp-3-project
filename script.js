@@ -95,20 +95,45 @@ function mergeHeadersFromFiles() {
 }
 
 // Merge data from all files
+// Merge data from all files and remove duplicate links per username
 function mergeDataFromFiles() {
     let mergedData = [];
+    const uniqueLinksMap = {}; // To track unique links per username
+
     Object.values(uploadedFiles).forEach(fileData => {
         for (let i = 1; i < fileData.length; i++) {
             let row = new Array(headers.length).fill('');
-            fileData[0].forEach((header, index) => {
-                let headerIndex = headers.indexOf(header);
-                row[headerIndex] = fileData[i][index];
+            const username = fileData[i][0];
+            const links = fileData[i].slice(2); // Links start from the third column
+
+            // Initialize an empty set for unique links if not already present for the username
+            if (!uniqueLinksMap[username]) {
+                uniqueLinksMap[username] = new Set();
+            }
+
+            // Filter out duplicate links by adding only unique links to the merged data
+            const uniqueLinks = links.filter(link => {
+                if (link && !uniqueLinksMap[username].has(link)) {
+                    uniqueLinksMap[username].add(link); // Add the unique link to the set
+                    return true;
+                }
+                return false; // Exclude duplicate links
             });
+
+            // Construct the row with the username, user ID, and unique links
+            row[0] = username;
+            row[1] = fileData[i][1]; // Assuming user ID is in the second column
+            uniqueLinks.forEach((link, index) => {
+                row[index + 2] = link; // Fill the row starting from the third column
+            });
+
             mergedData.push(row);
         }
     });
+
     return mergedData;
 }
+
 
 // Function to remove empty records
 function removeEmptyRecords() {
@@ -123,6 +148,7 @@ function removeEmptyRecords() {
 }
 
 // Call this function wherever you display the table or modify the data
+// Function to display the table with data and ensure no duplicate links
 function displayTable(data) {
     removeEmptyRecords(); // Remove empty records before displaying the table
 
@@ -138,7 +164,6 @@ function displayTable(data) {
     // Show the table if data exists
     dataTable.style.display = 'table'; // Display the table
 
-    // Create an object to group links by username and user ID
     const groupedData = {};
 
     data.forEach(row => {
@@ -146,21 +171,27 @@ function displayTable(data) {
         const userId = row[1]; // Assuming user ID is in the second column
         const links = row.slice(2); // The rest are links
 
+        // Initialize the grouped data if the username doesn't exist
         if (!groupedData[username]) {
             groupedData[username] = {
                 userId: userId,
-                links: []
+                links: new Set() // Use Set to avoid duplicate links
             };
         }
 
-        groupedData[username].links.push(...links.filter(link => link)); // Add only non-empty links
+        // Add non-empty links and automatically filter out duplicates using the Set
+        links.forEach(link => {
+            if (link) {
+                groupedData[username].links.add(link.trim()); // Trim to remove extra spaces
+            }
+        });
     });
 
     // Populate the table with grouped data
     for (const username in groupedData) {
         const userData = groupedData[username];
         const userId = userData.userId;
-        const links = userData.links;
+        const links = Array.from(userData.links); // Convert the Set back to an array
 
         // Create a new row for username
         const userRow = document.createElement('tr');
@@ -168,16 +199,6 @@ function displayTable(data) {
         usernameCell.textContent = username;
         usernameCell.rowSpan = 2; // Span two rows for username
         userRow.appendChild(usernameCell);
-
-        // Add "Delete Record" button next to the username
-        const deleteRecordBtn = document.createElement('button');
-        deleteRecordBtn.textContent = 'Delete Record';
-        deleteRecordBtn.classList.add('btn-delete-record'); // Add your button class
-        deleteRecordBtn.style.marginLeft = '10px'; // Add space between username and button
-        deleteRecordBtn.onclick = function() {
-            deleteRecord(username); // Pass username to delete the entire record
-        };
-        usernameCell.appendChild(deleteRecordBtn); // Append the delete button to the username cell
 
         const userIdCell = document.createElement('td');
         userIdCell.textContent = userId;
@@ -189,8 +210,8 @@ function displayTable(data) {
         const linksCell = document.createElement('td');
 
         // Create columns for each link
-        links.forEach((link, linkIndex) => {
-            const linkCol = document.createElement('div'); // Use divs to create columns
+        links.forEach((link) => {
+            const linkCol = document.createElement('div');
             linkCol.style.display = 'flex'; // Flexbox for link and button alignment
 
             // Add link text
@@ -201,10 +222,10 @@ function displayTable(data) {
             // Add delete button for each link
             const deleteLinkBtn = document.createElement('button');
             deleteLinkBtn.textContent = 'Delete Link';
-            deleteLinkBtn.classList.add('btn-delete'); // Add your button class
-            deleteLinkBtn.style.marginLeft = '10px'; // Add space between link and button
-            deleteLinkBtn.onclick = function() {
-                deleteLink(username, linkIndex); // Pass username and link index to delete the correct link
+            deleteLinkBtn.classList.add('btn-delete');
+            deleteLinkBtn.style.marginLeft = '10px';
+            deleteLinkBtn.onclick = function () {
+                deleteLink(username, link); // Pass username and the actual link value to delete
             };
 
             linkCol.appendChild(deleteLinkBtn); // Append delete button to link column
@@ -212,56 +233,55 @@ function displayTable(data) {
         });
 
         linksRow.appendChild(linksCell);
-
         tableBody.appendChild(linksRow);
     }
 }
 
-// Ensure the empty records are removed after any modification
-document.getElementById('csvFileInput').addEventListener('change', function (e) {
-    const dataTable = document.getElementById('dataTable'); 
-    const files = e.target.files;
-    Array.from(files).forEach(file => {
-        Papa.parse(file, {
-            complete: function (results) {
-                uploadedFiles[file.name] = results.data; // Store the parsed CSV in uploadedFiles
-                headers = mergeHeadersFromFiles();
-                combinedData = mergeDataFromFiles();
-                removeEmptyRecords(); // Clean empty records after merging
-                updateFileSelector();
-                updateFileList();
-                saveToLocalStorage(); // Save to localStorage after file is uploaded
-                displayTable(combinedData); 
-                dataTable.style.display = 'none';
-            }
-        });
-    });
-});
+// Function to delete a specific link by matching the exact link
+function deleteLink(username, linkToDelete) {
+    // Flag to track whether any link was deleted
+    let linkDeleted = false;
 
-
-
-// Function to delete a specific link
-function deleteLink(username, linkIndex) {
-    // const dataTable = document.getElementById('dataTable'); 
-    // Find the user's data and remove the specified link
+    // Loop through each file in the uploadedFiles object
     Object.keys(uploadedFiles).forEach(fileName => {
         const fileData = uploadedFiles[fileName];
+
+        // Loop through each row of data in the file, starting from the second row (first row is headers)
         for (let i = 1; i < fileData.length; i++) {
-            if (fileData[i][0] === username) {
-                // Remove the link at the specific index
-                fileData[i].splice(linkIndex + 2, 1); // +2 because the first two columns are username and userId
-                break;
+            if (fileData[i][0] === username) { // If the row belongs to the specified username
+
+                // Loop through the links in the current row (skip the first two columns: username and userId)
+                for (let j = 2; j < fileData[i].length; j++) {
+                    if (fileData[i][j].trim() === linkToDelete.trim()) { // Trim both for comparison
+                        // If the link matches, remove it
+                        fileData[i].splice(j, 1);
+                        j--; // Decrement j to account for the shift in indices after splice
+                        linkDeleted = true;
+                    }
+                }
+
+                // If the row has only username and userId left, remove the entire row (no links left)
+                if (fileData[i].length === 2) {
+                    fileData.splice(i, 1);
+                    i--; // Decrement i to account for the shift in indices after splice
+                }
             }
         }
     });
 
-    // After modifying the data, update the table and save the changes
-    combinedData = mergeDataFromFiles(); // Re-merge data from files
-    displayTable(combinedData); 
-    // dataTable.style.display = 'none';
-    // Refresh the table
-    saveToLocalStorage(); // Save updated data to localStorage
+    if (linkDeleted) {
+        // After modifying the data, update the combinedData and the table
+        combinedData = mergeDataFromFiles(); // Re-merge data from files
+        displayTable(combinedData); // Refresh the table
+
+        // Save the updated data back to localStorage
+        saveToLocalStorage();
+    } else {
+        console.log("No matching link found for deletion.");
+    }
 }
+
+
 
 // Function to delete the entire record (username, userId, and all links)
 function deleteRecord(username) {
