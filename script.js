@@ -148,7 +148,6 @@ function removeEmptyRecords() {
 }
 
 // Call this function wherever you display the table or modify the data
-// Function to display the table with data and ensure no duplicate links
 function displayTable(data) {
     removeEmptyRecords(); // Remove empty records before displaying the table
 
@@ -203,6 +202,18 @@ function displayTable(data) {
         const userIdCell = document.createElement('td');
         userIdCell.textContent = userId;
         userRow.appendChild(userIdCell);
+
+        // Add "Delete Record" button
+        const deleteRecordCell = document.createElement('td');
+        const deleteRecordBtn = document.createElement('button');
+        deleteRecordBtn.textContent = 'Delete Record';
+        deleteRecordBtn.classList.add('btn-delete');
+        deleteRecordBtn.onclick = function () {
+            deleteRecord(username); // Pass username to delete the entire record
+        };
+        deleteRecordCell.appendChild(deleteRecordBtn);
+        userRow.appendChild(deleteRecordCell); // Add the delete record button to the row
+
         tableBody.appendChild(userRow);
 
         // Create a new row for links
@@ -280,8 +291,6 @@ function deleteLink(username, linkToDelete) {
         console.log("No matching link found for deletion.");
     }
 }
-
-
 
 // Function to delete the entire record (username, userId, and all links)
 function deleteRecord(username) {
