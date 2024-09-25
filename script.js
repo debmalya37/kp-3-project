@@ -110,9 +110,22 @@ function mergeDataFromFiles() {
     return mergedData;
 }
 
-// Display table for the combined data based on search
-// Display table for the combined data based on search
+// Function to remove empty records
+function removeEmptyRecords() {
+    combinedData = combinedData.filter(row => {
+        const username = row[0]?.trim(); // Username in the first column
+        const userId = row[1]?.trim(); // User ID in the second column
+        const links = row.slice(2).filter(link => link?.trim()); // Links start from the third column
+
+        // Check if username, userId, or any links are present
+        return username && userId && links.length > 0;
+    });
+}
+
+// Call this function wherever you display the table or modify the data
 function displayTable(data) {
+    removeEmptyRecords(); // Remove empty records before displaying the table
+
     const tableBody = document.getElementById('tableBody');
     const dataTable = document.getElementById('dataTable'); // Get the dataTable element
     tableBody.innerHTML = ''; // Clear existing contents
@@ -203,6 +216,28 @@ function displayTable(data) {
         tableBody.appendChild(linksRow);
     }
 }
+
+// Ensure the empty records are removed after any modification
+document.getElementById('csvFileInput').addEventListener('change', function (e) {
+    const dataTable = document.getElementById('dataTable'); 
+    const files = e.target.files;
+    Array.from(files).forEach(file => {
+        Papa.parse(file, {
+            complete: function (results) {
+                uploadedFiles[file.name] = results.data; // Store the parsed CSV in uploadedFiles
+                headers = mergeHeadersFromFiles();
+                combinedData = mergeDataFromFiles();
+                removeEmptyRecords(); // Clean empty records after merging
+                updateFileSelector();
+                updateFileList();
+                saveToLocalStorage(); // Save to localStorage after file is uploaded
+                displayTable(combinedData); 
+                dataTable.style.display = 'none';
+            }
+        });
+    });
+});
+
 
 
 // Function to delete a specific link
