@@ -106,9 +106,16 @@ function mergeDataFromFiles() {
 // Display table for the combined data based on search
 function displayTable(data) {
     const tableBody = document.getElementById('tableBody');
+    const dataTable = document.getElementById('dataTable'); // Get the dataTable element
     tableBody.innerHTML = ''; // Clear existing contents
 
-    if (!data || data.length === 0) return; // Return if no data
+    if (!data || data.length === 0) {
+        dataTable.style.display = 'none'; // Hide table if no data
+        return; // Return if no data
+    }
+
+    // Show the table if data exists
+    dataTable.style.display = 'table'; // Display the table
 
     // Create an object to group links by username and user ID
     const groupedData = {};
@@ -189,6 +196,7 @@ function displayTable(data) {
     }
 }
 
+
 // Function to delete a specific link
 function deleteLink(username, linkIndex) {
     // Find the user's data and remove the specified link
@@ -232,11 +240,13 @@ function deleteRecord(username) {
 // Search functionality with enhanced username matching, trimming, and consistency improvements
 document.getElementById('searchInput').addEventListener('input', function () {
     const searchTerm = this.value.toLowerCase().trim(); // Trim any spaces from the search term
-
+    const dataTable = document.getElementById('dataTable');
     // If the search box is empty, display all combined data
     if (searchTerm === '') {
         // displayTable(combinedData);
+        dataTable.style.display = 'none';
     } else {
+        dataTable.style.display = 'table';
         const matchedUsernames = new Set();
 
         // First pass: Identify all usernames where the search term exists in any field
@@ -264,10 +274,6 @@ document.getElementById('searchInput').addEventListener('input', function () {
 
 
 
-
-
-
-// Export all data as one CSV file
 // Export all data as one CSV file
 document.getElementById('exportBtn').addEventListener('click', function () {
     let csvContent = headers.join(',') + '\n';
