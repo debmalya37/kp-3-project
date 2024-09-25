@@ -36,22 +36,27 @@ document.getElementById('loginForm').addEventListener('submit', function (e) {
 });
 
 // Load CSV files from localStorage
+// Load CSV files and any added rows from localStorage
 function loadFromLocalStorage() {
     const savedFiles = JSON.parse(localStorage.getItem('uploadedFiles')) || {};
     uploadedFiles = savedFiles;
 
-    if (Object.keys(uploadedFiles).length > 0) {
+    const savedCombinedData = JSON.parse(localStorage.getItem('combinedData')) || [];
+    combinedData = savedCombinedData.length > 0 ? savedCombinedData : mergeDataFromFiles();
+
+    if (Object.keys(uploadedFiles).length > 0 || savedCombinedData.length > 0) {
         headers = mergeHeadersFromFiles();
-        combinedData = mergeDataFromFiles();
         updateFileList(); // Update file list in the sidebar
         updateFileSelector(); // Update file selector dropdown
         displayTable(combinedData); // Display all data initially
     }
 }
 
+
 // Save the current state of uploadedFiles to localStorage
 function saveToLocalStorage() {
     localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
+    localStorage.setItem('combinedData', JSON.stringify(combinedData));
 }
 
 // Handle CSV Upload
@@ -230,7 +235,7 @@ document.getElementById('searchInput').addEventListener('input', function () {
 
     // If the search box is empty, display all combined data
     if (searchTerm === '') {
-        displayTable(combinedData);
+        // displayTable(combinedData);
     } else {
         const matchedUsernames = new Set();
 
@@ -263,6 +268,7 @@ document.getElementById('searchInput').addEventListener('input', function () {
 
 
 // Export all data as one CSV file
+// Export all data as one CSV file
 document.getElementById('exportBtn').addEventListener('click', function () {
     let csvContent = headers.join(',') + '\n';
     combinedData.forEach(row => {
@@ -276,6 +282,7 @@ document.getElementById('exportBtn').addEventListener('click', function () {
     link.download = 'combined_data.csv';
     link.click();
 });
+
 
 // Update file list in the sidebar
 // Update file list in the sidebar
@@ -355,6 +362,7 @@ function openModal(rowIndex = null) {
 }
 
 // Save the new or edited row
+// Save the new or edited row
 document.getElementById('saveRow').addEventListener('click', function () {
     const form = document.getElementById('modalForm');
     const newRow = [];
@@ -373,9 +381,10 @@ document.getElementById('saveRow').addEventListener('click', function () {
     }
 
     displayTable(combinedData); // Refresh table
-    document.getElementById('addRowModal').style.display = 'none'; // Close modal
     saveToLocalStorage(); // Save updated data to localStorage
+    document.getElementById('addRowModal').style.display = 'none'; // Close modal
 });
+
 
 // Close modal functionality
 document.getElementById('closeModal').addEventListener('click', function () {
