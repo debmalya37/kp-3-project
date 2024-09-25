@@ -351,9 +351,23 @@ document.getElementById('searchInput').addEventListener('input', function () {
 
 // Export all data as one CSV file
 document.getElementById('exportBtn').addEventListener('click', function () {
-    let csvContent = headers.join(',') + '\n';
+    let csvContent = 'Username,UserId,Links\n'; // Set CSV headers
+
     combinedData.forEach(row => {
-        csvContent += row.join(',') + '\n';
+        const username = row[0]; // Assuming username is in the first column
+        const userId = row[1]; // Assuming user ID is in the second column
+        const links = row.slice(2).filter(link => link); // Get links and filter out empty ones
+
+        // Create a new row for the username and userId
+        csvContent += `${username},${userId},\n`; // Add a new line for the username and userId
+
+        // Add a new row for each link
+        links.forEach(link => {
+            csvContent += `,,${link}\n`; // Add the link in the "Links" column
+        });
+
+        // Add an empty line to separate different users for better readability
+        csvContent += '\n'; 
     });
 
     // Download the CSV file
@@ -363,6 +377,8 @@ document.getElementById('exportBtn').addEventListener('click', function () {
     link.download = 'combined_data.csv';
     link.click();
 });
+
+
 
 
 // Update file list in the sidebar
