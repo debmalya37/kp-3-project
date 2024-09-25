@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
 // Handle login form submission
 document.getElementById('loginForm').addEventListener('submit', function (e) {
     e.preventDefault();
-
+    const dataTable = document.getElementById('dataTable'); 
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     const loginError = document.getElementById('loginError');
@@ -28,7 +28,9 @@ document.getElementById('loginForm').addEventListener('submit', function (e) {
         // Hide login modal and show CSV manager
         document.getElementById('loginModal').style.display = 'none';
         document.getElementById('csvManager').style.display = 'block';
-        displayTable(combinedData); // Ensure table is displayed after login
+        displayTable(combinedData); 
+        dataTable.style.display = 'none';
+        // Ensure table is displayed after login
     } else {
         // Show error message
         loginError.style.display = 'block';
@@ -38,6 +40,7 @@ document.getElementById('loginForm').addEventListener('submit', function (e) {
 // Load CSV files from localStorage
 // Load CSV files and any added rows from localStorage
 function loadFromLocalStorage() {
+    const dataTable = document.getElementById('dataTable'); 
     const savedFiles = JSON.parse(localStorage.getItem('uploadedFiles')) || {};
     uploadedFiles = savedFiles;
 
@@ -48,7 +51,9 @@ function loadFromLocalStorage() {
         headers = mergeHeadersFromFiles();
         updateFileList(); // Update file list in the sidebar
         updateFileSelector(); // Update file selector dropdown
-        displayTable(combinedData); // Display all data initially
+        displayTable(combinedData); 
+        dataTable.style.display = 'none';
+        // Display all data initially
     }
 }
 
@@ -61,6 +66,7 @@ function saveToLocalStorage() {
 
 // Handle CSV Upload
 document.getElementById('csvFileInput').addEventListener('change', function (e) {
+    const dataTable = document.getElementById('dataTable'); 
     const files = e.target.files;
     Array.from(files).forEach(file => {
         Papa.parse(file, {
@@ -71,7 +77,9 @@ document.getElementById('csvFileInput').addEventListener('change', function (e) 
                 updateFileSelector();
                 updateFileList();
                 saveToLocalStorage(); // Save to localStorage after file is uploaded
-                displayTable(combinedData); // Display all data after upload
+                displayTable(combinedData); 
+                dataTable.style.display = 'none';
+                // Display all data after upload
             }
         });
     });
@@ -199,6 +207,7 @@ function displayTable(data) {
 
 // Function to delete a specific link
 function deleteLink(username, linkIndex) {
+    // const dataTable = document.getElementById('dataTable'); 
     // Find the user's data and remove the specified link
     Object.keys(uploadedFiles).forEach(fileName => {
         const fileData = uploadedFiles[fileName];
@@ -213,7 +222,9 @@ function deleteLink(username, linkIndex) {
 
     // After modifying the data, update the table and save the changes
     combinedData = mergeDataFromFiles(); // Re-merge data from files
-    displayTable(combinedData); // Refresh the table
+    displayTable(combinedData); 
+    // dataTable.style.display = 'none';
+    // Refresh the table
     saveToLocalStorage(); // Save updated data to localStorage
 }
 
