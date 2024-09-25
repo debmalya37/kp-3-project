@@ -196,11 +196,13 @@ function displayTable(data) {
         const userRow = document.createElement('tr');
         const usernameCell = document.createElement('td');
         usernameCell.textContent = username;
+        usernameCell.classList.add('username'); // Add the username class
         usernameCell.rowSpan = 2; // Span two rows for username
         userRow.appendChild(usernameCell);
 
         const userIdCell = document.createElement('td');
         userIdCell.textContent = userId;
+        userIdCell.classList.add('userid'); // Add the userId class
         userRow.appendChild(userIdCell);
 
         // Add "Delete Record" button
@@ -219,15 +221,20 @@ function displayTable(data) {
         // Create a new row for links
         const linksRow = document.createElement('tr');
         const linksCell = document.createElement('td');
+        linksCell.classList.add('links'); // Add the links class
 
         // Create columns for each link
         links.forEach((link) => {
             const linkCol = document.createElement('div');
             linkCol.style.display = 'flex'; // Flexbox for link and button alignment
 
-            // Add link text
-            const linkText = document.createElement('span');
+            // Add clickable link
+            const linkText = document.createElement('a');
             linkText.textContent = link;
+            linkText.href = link; // Set the href attribute for the link
+            linkText.target = '_blank'; // Open in a new tab
+            linkText.rel = 'noopener noreferrer'; // Security improvement
+
             linkCol.appendChild(linkText);
 
             // Add delete button for each link
@@ -247,6 +254,7 @@ function displayTable(data) {
         tableBody.appendChild(linksRow);
     }
 }
+
 
 // Function to delete a specific link by matching the exact link
 function deleteLink(username, linkToDelete) {

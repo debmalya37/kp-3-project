@@ -397,66 +397,6 @@ button#saveRow:focus {
 }
 
 
-/* .close-btn {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    font-size: 24px;
-    cursor: pointer;
-    color: rgb(210, 10, 10);
-    background: none;
-    border: none;
-} */
-
-/* .modal-form {
-    margin: 20px 0;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.modal-form input {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 14px;
-    outline: none;
-}
-
-.modal-form input:focus {
-    border-color: #009688;
-}
-
-.file-item {
-    cursor: pointer;
-    padding: 5px;
-    border-bottom: 1px solid #ddd;
-}
-
-.file-item:hover {
-    background-color: #f0f0f0;
-} */
-
-.username {
-    background-color: rgba(255, 99, 71, 0.2); /* Light reddish background */
-    color: #000; /* Black text for better readability */
-    padding: 5px;
-    border-radius: 3px;
-}
-
-.userid {
-    background-color: rgba(100, 149, 237, 0.2); /* Light blue background */
-    color: #000; /* Black text */
-    padding: 5px;
-    border-radius: 3px;
-}
-
-.links {
-    background-color: rgba(144, 238, 144, 0.2); /* Light green background */
-    padding: 10px;
-    border-radius: 3px;
-}
-
 /* General button styles */
 .btn-secondary {
     background-color: #4CAF50; /* Green background */
@@ -604,4 +544,67 @@ input[type="text"], input[type="file"], select {
 .btn-delete-record:active {
     background-color: #e60000; /* Even darker red when pressed */
     transform: scale(0.95); /* Slightly shrink the button on click */
+}
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse; /* Collapse borders for a cleaner look */
+}
+
+/* Cell styling */
+td {
+    padding: 10px;
+    border: 1px solid #ccc; /* Light gray border for cells */
+}
+
+/* Username styling */
+.username {
+    background-color: rgba(255, 99, 71, 0.2); /* Light reddish background */
+    color: #000; /* Black text for better readability */
+    padding: 10px;
+    border-radius: 5px; /* More rounded corners */
+    text-align: center; /* Center text */
+}
+
+/* User ID styling */
+.userid {
+    background-color: rgba(100, 149, 237, 0.2); /* Light blue background */
+    color: #000; /* Black text */
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center; /* Center text */
+}
+
+/* Links styling */
+.links {
+    background-color: rgba(144, 238, 144, 0.2); /* Light green background */
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column; /* Stack links vertically */
+}
+
+/* Link styling */
+.links a {
+    color: #007bff; /* Bootstrap link color */
+    text-decoration: none; /* No underline */
+    padding: 5px 0; /* Spacing between links */
+}
+
+.links a:hover {
+    text-decoration: underline; /* Underline on hover for better visibility */
+}
+
+/* Button styling */
+.btn-delete {
+    background-color: #ff4d4d; /* Red background for delete buttons */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer; /* Pointer cursor on hover */
+}
+
+.btn-delete:hover {
+    background-color: #ff1a1a; /* Darker red on hover */
 }
