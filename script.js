@@ -224,22 +224,41 @@ function deleteRecord(username) {
 
 
 // Search functionality
+// Search functionality with enhanced username matching, trimming, and consistency improvements
 document.getElementById('searchInput').addEventListener('input', function () {
-    const searchTerm = this.value.toLowerCase();
+    const searchTerm = this.value.toLowerCase().trim(); // Trim any spaces from the search term
 
     // If the search box is empty, display all combined data
     if (searchTerm === '') {
         displayTable(combinedData);
     } else {
-        // Filter the data based on the search term
-        const filteredData = combinedData.filter(row =>
-            row.some(cell => cell && cell.toString().toLowerCase().includes(searchTerm)) // Convert cell to string
-        );
+        const matchedUsernames = new Set();
 
-        console.log('Filtered Data:', filteredData); // Debugging line
-        displayTable(filteredData); // Display filtered rows
+        // First pass: Identify all usernames where the search term exists in any field
+        combinedData.forEach(row => {
+            const username = row[0].trim(); // Assuming username is in the first column, trimming spaces
+            const userId = row[1].trim(); // Assuming user ID is in the second column, trimming spaces
+            const restOfFields = row.slice(2); // Rest are considered links or other data
+
+            // Normalize all fields to ensure proper matching (avoiding undefined/null/empty values)
+            const normalizedRow = [username, userId, ...restOfFields].filter(Boolean); // Filter out empty/null cells
+
+            // Search for the term in the row (username, userId, or any other field)
+            if (normalizedRow.some(field => field.toString().toLowerCase().includes(searchTerm))) {
+                matchedUsernames.add(username); // If found, add the username (trimmed) to the set
+            }
+        });
+
+        // Second pass: Filter all records that have usernames from the matchedUsernames set
+        const filteredData = combinedData.filter(row => matchedUsernames.has(row[0].trim())); // Trim username in filter too
+
+        // Display the filtered data (all records with matching usernames)
+        displayTable(filteredData);
     }
 });
+
+
+
 
 
 
