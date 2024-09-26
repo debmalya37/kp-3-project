@@ -205,6 +205,15 @@ function displayTable(data) {
         userIdCell.classList.add('userid'); // Add the userId class
         userRow.appendChild(userIdCell);
 
+        // Add copy button for user ID
+        const copyUserIdBtn = document.createElement('button');
+        copyUserIdBtn.textContent = 'Copy User ID';
+        copyUserIdBtn.classList.add('btn-copy');
+        copyUserIdBtn.onclick = function () {
+            copyToClipboard(userId); // Function to copy text to clipboard
+        };
+        userIdCell.appendChild(copyUserIdBtn); // Add the copy button to the user ID cell
+
         // Add "Delete Record" button
         const deleteRecordCell = document.createElement('td');
         const deleteRecordBtn = document.createElement('button');
@@ -237,6 +246,17 @@ function displayTable(data) {
 
             linkCol.appendChild(linkText);
 
+            // Add copy button for each link
+            const copyLinkBtn = document.createElement('button');
+            copyLinkBtn.textContent = 'Copy Link';
+            copyLinkBtn.classList.add('btn-copy');
+            copyLinkBtn.style.marginLeft = '10px';
+            copyLinkBtn.onclick = function () {
+                copyToClipboard(link); // Pass the link to copy
+            };
+
+            linkCol.appendChild(copyLinkBtn); // Append copy button to link column
+
             // Add delete button for each link
             const deleteLinkBtn = document.createElement('button');
             deleteLinkBtn.textContent = 'Delete Link';
@@ -255,7 +275,24 @@ function displayTable(data) {
     }
 }
 
+// Function to copy text to clipboard
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Copied to clipboard: ' + text); // Optional feedback
+    }).catch(err => {
+        console.error('Could not copy text: ', err); // Error handling
+    });
+}
 
+
+// Function to copy text to clipboard
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Copied to clipboard: ' + text); // Optional feedback
+    }).catch(err => {
+        console.error('Could not copy text: ', err); // Error handling
+    });
+}
 // Function to delete a specific link by matching the exact link
 function deleteLink(username, linkToDelete) {
     // Flag to track whether any link was deleted
@@ -356,7 +393,6 @@ document.getElementById('searchInput').addEventListener('input', function () {
 });
 
 
-
 // Export all data as one CSV file
 document.getElementById('exportBtn').addEventListener('click', function () {
     let csvContent = 'Username,UserId,Links\n'; // Set CSV headers
@@ -366,16 +402,25 @@ document.getElementById('exportBtn').addEventListener('click', function () {
         const userId = row[1]; // Assuming user ID is in the second column
         const links = row.slice(2).filter(link => link); // Get links and filter out empty ones
 
-        // Create a new row for the username and userId
-        csvContent += `${username},${userId},\n`; // Add a new line for the username and userId
-
-        // Add a new row for each link
-        links.forEach(link => {
-            csvContent += `,,${link}\n`; // Add the link in the "Links" column
+        // Prepare the row for CSV
+        const csvRow = [];
+        csvRow.push(username); // Add username to the row
+        csvRow.push(userId);   // Add user ID to the row
+        
+        // Add links to the row, empty cells for no links
+        links.forEach((link, index) => {
+            if (index < 10) { // Limit to 10 links per row, adjust if needed
+                csvRow.push(link);
+            }
         });
+        
+        // Fill remaining columns with empty strings if there are less than 10 links
+        while (csvRow.length < 2 + 10) { // 2 for username and userId + 10 for links
+            csvRow.push('');
+        }
 
-        // Add an empty line to separate different users for better readability
-        csvContent += '\n'; 
+        // Join the row and add to CSV content
+        csvContent += csvRow.join(',') + '\n'; // Join the row and add a new line
     });
 
     // Download the CSV file

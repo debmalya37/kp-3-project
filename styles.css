@@ -1,60 +1,83 @@
 /* General Styles */
 body {
     font-family: 'Roboto', sans-serif;
-    background-color: #f4f7f6;
+    background-color: #030a31;
+    color: #111111;
     margin: 0;
     padding: 0;
-    color: #333;
 }
 
+h1, h2 {
+    color: #177cf8; /* Neon accent color for headings */
+}
+
+.logo{
+            width: 100px; /* Medium size */
+            height: 100px; /* Medium size */
+            border-radius: 50%; /* Circular frame */
+            overflow: hidden; /* Ensures image fits inside the circle */
+            position: relative; /* For border animation */
+            display: inline-block;
+}
 /* Modal styling for Login */
 .modal-content {
-    background-color: white;
+    background-color: #898787;
     margin: 0 auto;
     padding: 20px;
-    border: 1px solid #888;
+    border: 1px solid #555;
     width: 30%;
     text-align: center;
     position: relative;
     top: 50%;
-    transform: translateY(-50%); /* Center the modal vertically */
+    transform: translateY(-50%);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+}
+
+.modal-content input, .modal-content button {
+    background-color: #9b9999;
+    color: #e0e0e0;
+    border: none;
+    border-radius: 5px;
 }
 
 .modal-content input {
-    width: 90%;
     padding: 10px;
     margin: 10px 0;
+    width: 90%;
 }
 
 .modal-content button {
-    width: 95%;
     padding: 10px;
     margin: 10px 0;
+    width: 95%;
+    background-color: #177cf8;
+    color: #1f1f1f;
+    font-weight: bold;
 }
 
 .error-message {
-    color: red;
+    color: #ff4d4d;
     margin-top: 10px;
 }
 
-/* Responsive Styles for Mobile Devices */
+/* Responsive Styles */
 @media (max-width: 768px) {
     .modal-content {
-        width: 90%; /* Modal takes up more width on mobile */
+        width: 90%;
     }
 
     .container {
-        padding: 10px; /* Less padding on mobile */
+        padding: 10px;
     }
 
     .main-content {
-        flex-direction: column; /* Stack sidebar and content vertically on small screens */
+        flex-direction: column;
     }
 
     .sidebar {
-        width: 100%; /* Sidebar takes full width on mobile */
+        width: 100%;
         border-right: none;
-        border-bottom: 1px solid #ccc;
+        border-bottom: 1px solid #555;
     }
 
     .content {
@@ -62,20 +85,16 @@ body {
     }
 
     .table-container {
-        max-width: 100%; /* Allow the table to adjust to mobile screens */
-        max-height: 300px; /* Set a max height */
-    }
-
-    .modal {
-        padding-bottom: 0; /* Remove extra padding at the bottom for mobile */
+        max-width: 100%;
+        max-height: 300px;
     }
 
     table {
-        font-size: 12px; /* Smaller font size for tables on mobile */
+        font-size: 12px;
     }
 
     button {
-        font-size: 12px; /* Smaller font size for buttons */
+        font-size: 12px;
     }
 
     h1 {
@@ -88,81 +107,70 @@ body {
         padding: 15px;
     }
 
-    .modal-content input {
-        padding: 8px;
-    }
-
-    .modal-content button {
+    .modal-content input, .modal-content button {
         padding: 8px;
     }
 }
 
-/* Keep all your existing CSV Manager styles intact */
+/* Container styling */
 .container {
     padding: 20px;
-    /* Other existing styles */
+    max-width: 1200px;
+    height: 90vh;
+    margin: 40px auto;
+    background-color: #edeeef;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
 }
-
-/* Keep other styles unchanged */
 h1 {
     text-align: center;
     margin-top: 20px;
-    color: #5D5C61;
+    color: #020008;
 }
-
-.container {
-    max-width: 1200px;
-    height: 80vh;
-    margin: 40px auto;
-    padding: 20px;
-    background-color: white;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-}
-
 .main-content {
     display: flex;
 }
-
+/* Sidebar */
 .sidebar {
     width: 250px;
     padding: 20px;
-    border-right: 1px solid #ccc;
+    color: white;
+    border-right: 1px solid #dddada;
+    background-color: #03073e;
 }
 
 .sidebar h2 {
     font-size: 18px;
-    color: #333;
+    color: #dbdcde;
     margin-bottom: 10px;
 }
-
 ul {
     list-style-type: none;
     padding-left: 0;
 }
-
 #fileList li {
-    margin-bottom: 5px;
+    background-color: #dedada;
+    color: #000000;
     padding: 10px;
-    background-color: #f9f9f9;
     border-radius: 5px;
     cursor: pointer;
+    margin-bottom: 5px;
 }
 
 #fileList li:hover {
-    background-color: #e0f7fa;
+    background-color: #177cf8;
+    color: #050505;
 }
 
 .file-upload-label {
+    background-color: #177cf8;
     display: block;
-    margin-top: 20px;
-    font-size: 14px;
-    cursor: pointer;
-    background-color: #009688;
-    color: white;
+    color: #1f1f1f;
     padding: 10px;
     text-align: center;
     border-radius: 5px;
+    margin-top: 20px;
+    cursor: pointer;
 }
 
 .content {
@@ -170,6 +178,7 @@ ul {
     padding: 20px;
 }
 
+/* Controls styling */
 .controls {
     display: flex;
     justify-content: space-between;
@@ -177,109 +186,116 @@ ul {
     align-items: center;
 }
 
-.search-input {
-    width: 70%;
-    padding: 10px;
-    border: 1px solid #ccc;
+#searchInput {
+    width: 50%;
+    padding: 20px;
+    border: 2px solid #fda4a4;
     border-radius: 20px;
     outline: none;
     font-size: 16px;
-    
+    background-color: #afacac;
+    color: #041241;
+    transition: border-color 1s ease-in-out; /* Smooth transition of border color */
+}
+
+#searchInput:focus {
+    border-color: #2933c3; /* Color changes when input is focused */
+}
+
+
+.search-input:focus {
+    outline: none;
+    border: 1px solid #276df1;
 }
 
 /* Table Styles */
 .table-container {
+    background-color: #e4dfdf;
     width: 100%;
     max-width: 55rem;
     margin-right: 10px;
     margin-left: 1px;
-    max-height: 400px; /* Set a max height for the container, adjust as needed */
+    max-height: 600px; /* Set a max height for the container, adjust as needed */
     overflow-x: auto; /* Enable horizontal scrolling if content overflows */
     overflow-y: auto; /* Enable vertical scrolling if content overflows */
     white-space: nowrap; /* Prevent the table from breaking into multiple lines */
     margin-top: 10px;
-    border: 1px solid #ddd; /* Optional: Add border for visibility */
-    background-color: #fff; /* Optional: Background color */
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Add inner shadow */
+    border: 1px solid #555;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
-    background-color: #fff;
 }
 
 thead {
-    background-color: #009688;
-    color: white;
+    background-color: #177cf8;
+    color: #1f1f1f;
 }
 
 th, td {
     padding: 10px;
     text-align: left;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #555;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #333;
+}
+
+tbody tr:hover {
+    background-color: #444;
 }
 
 th {
-    font-weight: bold;
     text-transform: uppercase;
+    font-weight: bold;
+    color: #177cf8;
 }
 
 td {
     font-size: 14px;
+    
 }
 
+/* Button styling */
 button {
     font-size: 14px;
     padding: 5px 10px;
     cursor: pointer;
-    border: none;
     border-radius: 5px;
-    transition: background-color 0.3s;
+    border: none;
+    color: rgb(255, 255, 255);
+    background-color: #050c6d;
 }
 
 button:hover {
-    opacity: 0.8;
+    background-color: #7481f7;
+    color: rgb(5, 15, 87);
 }
 
 button.edit {
-    background-color: #2196F3;
-    color: white;
+    background-color: #050c6d;
 }
 
 button.delete {
-    background-color: #F44336;
+    background-color: #ff4d4d;
     color: white;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
-/* Modal Styles */
-/* .modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-    padding-bottom: 200px;
+/* Modal form styles */
+.modal-content input, .modal-content select {
+    background-color: #b7b2b2;
+    color: #040857;
+    border: 1px solid #3b3939;
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: 600;
 }
-
-.modal-content {
-    background-color: white;
-    padding: 30px;
-    border-radius: 10px;
-    max-width: 400px;
-    width: 90%;
-    text-align: center;
-    position: relative;
-    bottom: 200px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-} */
-/* Modal Styles */
 .modal {
     display: none;
     position: fixed;
@@ -293,9 +309,16 @@ button.delete {
     align-items: center;
     padding-bottom: 200px;
 }
+.btn-copy {
+    background-color: white;
+    color: #020008;
+    border: 2px solid black;
+    display: flex;
+    margin-top: 2px;
+    display: relative;
 
+}
 .modal-content {
-    background-color: #fff;
     padding: 20px;
     border-radius: 10px;
     max-width: 400px;
@@ -303,7 +326,9 @@ button.delete {
     text-align: center;
     position: relative;
     bottom: 200px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    color: #ffffff;
+    background-color: rgb(8, 4, 75);
+    box-shadow: 0 4px 10px rgba(182, 179, 179, 0.3);
     transition: all 0.3s ease; /* Smooth transition effect */
     height: auto; /* Automatically adjusts based on content */
     max-height: 60vh; /* Ensure it doesn't grow too large on small screens */
@@ -314,7 +339,7 @@ button.delete {
 .modal-content h2 {
     font-size: 22px;
     margin-bottom: 15px;
-    color: #333;
+    color: #f1ebeb;
     font-weight: 500;
     letter-spacing: 0.5px;
 }
@@ -354,263 +379,74 @@ button.delete {
 }
 
 #modalForm input:focus, #modalForm select:focus {
-    border-color: #009688;
+    border-color: #177cf8;
+}
+.modal-content input:focus, .modal-content select:focus {
+    border-color: #177cf8;
 }
 
-/* Select Dropdown */
-select#fileSelector {
-    width: 100%;
-    padding: 10px;
-    font-size: 14px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    margin-top: 10px;
-    transition: border-color 0.3s ease;
-}
-
-select#fileSelector:focus {
-    border-color: #009688;
-}
-
-/* Button */
 button#saveRow {
-    width: 100%;
-    background-color: #007BFF; /* Blue background */
-    color: white; /* White text */
-    padding: 10px;
-    font-size: 16px;
+    background-color: #177cf8;
     font-weight: bold;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition effects */
 }
 
 button#saveRow:hover {
-    background-color: #0056b3; /* Darker blue on hover */
-    transform: translateY(-2px); /* Lift effect on hover */
+    background-color: #177cf8;
 }
 
-button#saveRow:focus {
-    outline: none; /* Remove default focus outline */
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Focus shadow effect */
-}
-
-
-/* General button styles */
-.btn-secondary {
-    background-color: #4CAF50; /* Green background */
-    margin: 5px;
-    color: white; /* White text */
-    border: none; /* No border */
-    border-radius: 5px; /* Rounded corners */
-    padding: 10px 20px; /* Padding for size */
-    font-size: 16px; /* Font size */
-    cursor: pointer; /* Pointer cursor on hover */
-    transition: background-color 0.3s, transform 0.2s; /* Transition effects */
-}
-
-/* Button hover effect */
-.btn-secondary:hover {
-    background-color: #45a049; /* Darker green on hover */
-    transform: translateY(-2px); /* Lift effect */
-}
-
-/* Button focus effect */
-.btn-secondary:focus {
-    outline: none; /* Remove default outline */
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Subtle shadow effect */
-}
-
-#addRow {
-    background-color: #007BFF; /* Blue background */
-    color: white; /* White text */
-    padding: 8px 15px;
+/* Button delete styles */
+.btn-delete {
+    background-color: #aa0c0c;
+    color: white;
+    padding: 5px 10px;
     border: none;
+    margin-top: 2px;
+    margin-bottom: 2px;
     border-radius: 5px;
     cursor: pointer;
-}
-
-#addRow:hover {
-    background-color: #0056b3; /* Darker blue on hover */
-}
-#dataTable {
-    width: 100%;
-
-    border-collapse: collapse; /* Merge borders */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Shadow for the table */
-}
-
-#dataTable th, #dataTable td {
-    padding: 12px 15px; /* Padding inside cells */
-    text-align: left; /* Align text to the left */
-    border-bottom: 1px solid #ddd; /* Bottom border for rows */
-}
-
-/* Header Styles */
-#dataTable th {
-    background-color: #4CAF50; /* Green background for header */
-    color: white; /* White text color */
-    font-weight: bold; /* Bold text */
-}
-
-/* Row Styles */
-#tableBody tr:nth-child(even) {
-    background-color: #f2f2f2; /* Light grey for even rows */
-}
-
-#tableBody tr:hover {
-    background-color: #e9f5e9; /* Light green on hover */
-}
-
-/* Cell Styles */
-#tableBody td {
-    color: #333; /* Dark text color */
-}
-
-/* Username Styling */
-#tableBody td:nth-child(1) {
-    background-color: rgba(247, 188, 112, 0.3); /* Light reddish background */
-}
-
-/* User ID Styling */
-#tableBody td:nth-child(2) {
-    color: #007BFF; /* Blue text color */
-}
-
-/* Links Styling */
-#tableBody td:nth-child(3) {
-    color: #555; /* Darker grey for links */
-    font-style: italic; /* Italicize links */
-}
-
-/* Highlight cells in red if occurrences exceed a threshold */
-.highlight {
-    background-color: rgba(255, 0, 0, 0.1); /* Light red background */
-    color: #FF0000; /* Red text */
-}
-input[type="text"], input[type="file"], select {
-    padding: 10px; /* Padding for input fields */
-    border: 1px solid #ccc; /* Border color */
-    border-radius: 5px; /* Rounded corners */
-    width: 100%; /* Full width */
-    box-sizing: border-box; /* Include padding and border in width */
-}
-
-/* Search Input Styles */
-#searchInput {
-    margin-bottom: 10px; /* Space below search input */
-}
-
-/* Error Message Styles */
-.error-message {
-    color: red; /* Red text for error messages */
-    font-weight: bold; /* Bold error messages */
-}
-.btn-delete {
-    background-color: #d9534f; /* Red background for delete */
-    color: white; /* White text */
-    border: none; /* No border */
-    border-radius: 3px; /* Rounded corners */
-    padding: 5px 10px; /* Padding for size */
-    font-size: 12px; /* Font size */
-    cursor: pointer; /* Pointer cursor on hover */
-    transition: background-color 0.3s, transform 0.2s; /* Transition effects */
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .btn-delete:hover {
-    background-color: #c9302c; /* Darker red on hover */
-    transform: translateY(-2px); /* Lift effect */
-}
-/* General button styles */
-.btn-delete-record {
-    background-color: #ff4c4c; /* Red background to indicate danger */
-    color: white; /* White text color */
-    border: none; /* Remove default border */
-    border-radius: 5px; /* Rounded corners */
-    padding: 5px 5px; /* Button padding for size */
-    font-size: 12px; /* Font size */
-    cursor: pointer; /* Pointer cursor on hover */
-    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    background-color: #e60000;
+    transform: scale(1.05);
 }
 
-/* Hover state to make the button more interactive */
-.btn-delete-record:hover {
-    background-color: #ff1a1a; /* Darker red on hover */
-    transform: scale(1.05); /* Slightly enlarge the button on hover */
+.btn-delete:active {
+    background-color: #cc0000;
 }
 
-/* Active state when the button is clicked */
-.btn-delete-record:active {
-    background-color: #e60000; /* Even darker red when pressed */
-    transform: scale(0.95); /* Slightly shrink the button on click */
-}
-/* Table styling */
-table {
-    width: 100%;
-    border-collapse: collapse; /* Collapse borders for a cleaner look */
+/* Table Cell Styles */
+td.username {
+    background-color: #032457;
+    color: #faf8f8;
+    text-align: center;
 }
 
-/* Cell styling */
-td {
-    padding: 10px;
-    border: 1px solid #ccc; /* Light gray border for cells */
+td.userid {
+    color: #032249;
+    font-weight: 900;
+    text-align: left;
+    background-color: white;
 }
 
-/* Username styling */
-.username {
-    background-color: rgba(255, 99, 71, 0.2); /* Light reddish background */
-    color: #000; /* Black text for better readability */
-    padding: 10px;
-    border-radius: 5px; /* More rounded corners */
-    text-align: center; /* Center text */
-    border: 2px solid grey;
-}
-
-/* User ID styling */
-.userid {
-    background-color: rgba(100, 149, 237, 0.2); /* Light blue background */
-    color: #000; /* Black text */
+td.links {
+    color: #000000;
+    background-color: #cbcdd0;
     padding: 10px;
     border-radius: 5px;
-    text-align: center; /* Center text */
-    border: 1px solid black;
-}
-
-/* Links styling */
-.links {
-    background-color: rgba(144, 238, 144, 0.2); /* Light green background */
-    padding: 10px;
-    border-radius: 5px;
-    display: flex;
-    flex-direction: column; /* Stack links vertically */
-}
-
-/* Link styling */
-.links a {
-    color: #007bff; /* Bootstrap link color */
-    text-decoration: none; /* No underline */
-    padding: 5px 0; /* Spacing between links */
-    margin: 1px;
-}
-
-.links a:hover {
-    text-decoration: underline; /* Underline on hover for better visibility */
-}
-
-/* Button styling */
-.btn-delete {
-    background-color: #ff4d4d; /* Red background for delete buttons */
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 5px 10px;
-    cursor: pointer; /* Pointer cursor on hover */
+    
     
 }
 
-.btn-delete:hover {
-    background-color: #ff1a1a; /* Darker red on hover */
+.links a {
+    color: #020202;
+    font-weight: 500;
+    margin: 2px 2px;
+    align-self: center;
+}
+
+.links a:hover {
+    color: #0721b2;
+    text-decoration: underline;
 }
