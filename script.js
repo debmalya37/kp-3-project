@@ -11,8 +11,11 @@ const validPassword = "password123";
 document.addEventListener('DOMContentLoaded', function () {
     const loginModal = document.getElementById('loginModal');
     loginModal.style.display = 'block'; // Show login modal
-
     loadFromLocalStorage(); // Load uploaded files from localStorage when page loads
+
+    // Add event listener for date filter
+    const applyDateFilterBtn = document.getElementById('applyDateFilter');
+    applyDateFilterBtn.addEventListener('click', handleDateFilter);
 });
 
 // Handle login form submission
@@ -38,7 +41,6 @@ document.getElementById('loginForm').addEventListener('submit', function (e) {
 });
 
 // Load CSV files from localStorage
-// Load CSV files and any added rows from localStorage
 function loadFromLocalStorage() {
     const dataTable = document.getElementById('dataTable'); 
     const savedFiles = JSON.parse(localStorage.getItem('uploadedFiles')) || {};
@@ -56,7 +58,6 @@ function loadFromLocalStorage() {
         // Display all data initially
     }
 }
-
 
 // Save the current state of uploadedFiles to localStorage
 function saveToLocalStorage() {
@@ -94,7 +95,6 @@ function mergeHeadersFromFiles() {
     return Array.from(allHeaders);
 }
 
-// Merge data from all files
 // Merge data from all files and remove duplicate links per username
 function mergeDataFromFiles() {
     let mergedData = [];
@@ -147,15 +147,30 @@ function removeEmptyRecords() {
     });
 }
 
+// Function to filter data by selected date
+function filterDataByDate(selectedDate, data) {
+    if (!selectedDate) {
+        return data; // If no date is selected, return all data
+    }
+
+    return data.filter(row => {
+        const rowDate = row[2]; // Assuming date is in the third column
+        return rowDate === selectedDate; // Match the date exactly
+    });
+}
+
 // Call this function wherever you display the table or modify the data
 function displayTable(data) {
     removeEmptyRecords(); // Remove empty records before displaying the table
+
+    const selectedDate = document.getElementById('dateFilter').value; // Get the selected date from the input
+    const filteredData = filterDataByDate(selectedDate, data); // Filter data by selected date
 
     const tableBody = document.getElementById('tableBody');
     const dataTable = document.getElementById('dataTable'); // Get the dataTable element
     tableBody.innerHTML = ''; // Clear existing contents
 
-    if (!data || data.length === 0) {
+    if (!filteredData || filteredData.length === 0) {
         dataTable.style.display = 'none'; // Hide table if no data
         return; // Return if no data
     }
@@ -165,10 +180,10 @@ function displayTable(data) {
 
     const groupedData = {};
 
-    data.forEach(row => {
+    filteredData.forEach(row => {
         const username = row[0]; // Assuming username is in the first column
         const userId = row[1]; // Assuming user ID is in the second column
-        const links = row.slice(2); // The rest are links
+        const links = row.slice(3); // The rest are links, assuming the date is in the third column
 
         // Initialize the grouped data if the username doesn't exist
         if (!groupedData[username]) {
@@ -274,6 +289,12 @@ function displayTable(data) {
         tableBody.appendChild(linksRow);
     }
 }
+
+// Event listener for applying the date filter
+document.getElementById('applyDateFilter').addEventListener('click', function () {
+    displayTable(combinedData); // Refresh the table with the filtered data
+});
+
 
 // Function to copy text to clipboard
 function copyToClipboard(text) {
@@ -395,29 +416,42 @@ document.getElementById('searchInput').addEventListener('input', function () {
 
 // Export all data as one CSV file
 document.getElementById('exportBtn').addEventListener('click', function () {
-    let csvContent = 'Username,UserId,Links\n'; // Set CSV headers
+    let csvContent = 'Username,UserId,Links\n'; // Set CSV headers with just "Links" without platform-specific names
 
     combinedData.forEach(row => {
         const username = row[0]; // Assuming username is in the first column
-        const userId = row[1]; // Assuming user ID is in the second column
+        const userId = row[1];   // Assuming user ID is in the second column
         const links = row.slice(2).filter(link => link); // Get links and filter out empty ones
+
+        // Create separate arrays for each platform
+        let facebookLinks = [];
+        let instagramLinks = [];
+        let twitterLinks = [];
+        let youtubeLinks = [];
+
+        // Sort links into the appropriate platform arrays
+        links.forEach(link => {
+            if (link.includes('facebook.com')) {
+                facebookLinks.push(link);
+            } else if (link.includes('instagram.com')) {
+                instagramLinks.push(link);
+            } else if (link.includes('twitter.com')) {
+                twitterLinks.push(link);
+            } else if (link.includes('youtube.com')) {
+                youtubeLinks.push(link);
+            }
+        });
 
         // Prepare the row for CSV
         const csvRow = [];
         csvRow.push(username); // Add username to the row
         csvRow.push(userId);   // Add user ID to the row
-        
-        // Add links to the row, empty cells for no links
-        links.forEach((link, index) => {
-            if (index < 10) { // Limit to 10 links per row, adjust if needed
-                csvRow.push(link);
-            }
-        });
-        
-        // Fill remaining columns with empty strings if there are less than 10 links
-        while (csvRow.length < 2 + 10) { // 2 for username and userId + 10 for links
-            csvRow.push('');
-        }
+
+        // Combine all sorted platform links into a single array
+        const sortedLinks = [...facebookLinks, ...instagramLinks, ...twitterLinks, ...youtubeLinks];
+
+        // Add sorted links to the row, and ensure each link is in its own column
+        addPlatformLinks(csvRow, sortedLinks, sortedLinks.length);
 
         // Join the row and add to CSV content
         csvContent += csvRow.join(',') + '\n'; // Join the row and add a new line
@@ -430,6 +464,23 @@ document.getElementById('exportBtn').addEventListener('click', function () {
     link.download = 'combined_data.csv';
     link.click();
 });
+
+// Helper function to add platform-specific links to the CSV row
+function addPlatformLinks(csvRow, platformLinks, maxLinks) {
+    let initialLength = csvRow.length;
+
+    // Add links to the row (up to the max number of links allowed)
+    platformLinks.forEach((link, index) => {
+        if (index < maxLinks) {
+            csvRow.push(link);
+        }
+    });
+
+    // Add empty strings to fill in remaining empty columns if needed
+    while (csvRow.length < initialLength + maxLinks) {
+        csvRow.push('');
+    }
+}
 
 
 
