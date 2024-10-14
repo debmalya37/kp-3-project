@@ -8,17 +8,15 @@ const validUsername = "admin";
 const validPassword = "password123";
 
 // On page load, display the login modal
-// On page load, display the login modal
 document.addEventListener('DOMContentLoaded', function () {
     const loginModal = document.getElementById('loginModal');
     loginModal.style.display = 'block'; // Show login modal
     loadFromLocalStorage(); // Load uploaded files from localStorage when page loads
 
     // Add event listener for date filter
-    const applyDateFilterBtn = document.getElementById('applyDateFilter');
-    applyDateFilterBtn.addEventListener('click', handleDateFilter); // Ensure this references the newly defined function
+    // const applyDateFilterBtn = document.getElementById('applyDateFilter');
+    // applyDateFilterBtn.addEventListener('click', handleDateFilter);
 });
-
 
 // Handle login form submission
 document.getElementById('loginForm').addEventListener('submit', function (e) {
@@ -61,146 +59,60 @@ function loadFromLocalStorage() {
     }
 }
 
-document.getElementById('csvFileInput').addEventListener('change', function(event) {
-    const files = event.target.files; // Get the selected files
-    const promises = []; // Array to hold promises for each file processing
-
-    for (const file of files) {
-        const fileExtension = file.name.split('.').pop().toLowerCase(); // Get the file extension
-
-        // Create a promise for each file to handle processing
-        const fileProcessingPromise = new Promise((resolve, reject) => {
-            const reader = new FileReader();
-
-            reader.onload = function(e) {
-                const fileContent = e.target.result; // Read the file content
-
-                if (fileExtension === 'csv') {
-                    // Process CSV file
-                    const csvData = processCSV(fileContent);
-                    resolve(csvData);
-                } else if (fileExtension === 'xlsx') {
-                    // Process XLSX file
-                    processXLSX(file).then(resolve).catch(reject);
-                } else {
-                    reject(new Error('Unsupported file type'));
-                }
-            };
-
-            // Read the file based on its type
-            if (fileExtension === 'csv') {
-                reader.readAsText(file); // Read CSV file as text
-            } else if (fileExtension === 'xlsx') {
-                reader.readAsArrayBuffer(file); // Read XLSX file as binary
-            }
-        });
-
-        promises.push(fileProcessingPromise); // Add the promise to the array
-    }
-
-    // Process all file promises
-    Promise.all(promises)
-        .then(dataArrays => {
-            const combinedDataFromFiles = [].concat(...dataArrays);
-            combinedData = combinedDataFromFiles;  // Update the global combinedData array
-
-            // Add files to uploadedFiles and save to localStorage
-            for (const file of files) {
-                uploadedFiles[file.name] = file;
-            }
-            saveToLocalStorage();  // Save updated file list and data to local storage
-            updateFileList();      // Update the displayed file list
-
-            displayTable(combinedData);  // Display combined data in the table
-        })
-        .catch(error => {
-            console.error('Error processing files:', error);
-        });
-});
-
 // Save the current state of uploadedFiles to localStorage
 function saveToLocalStorage() {
-    localStorage.setItem('uploadedFiles', JSON.stringify(Object.keys(uploadedFiles)));
+    localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
     localStorage.setItem('combinedData', JSON.stringify(combinedData));
 }
 
+// Handle CSV Upload
+document.getElementById('csvFileInput').addEventListener('change', function (e) {
+    const files = e.target.files;
+    Array.from(files).forEach(file => {
+        Papa.parse(file, {
+            complete: function (results) {
+                // Extract necessary columns from the CSV (A, D, G, I)
+                const filteredData = results.data.map(row => [row[0], row[3], row[6], row[8]]); // Extract Sl No, Date, User ID, URLs
+                uploadedFiles[file.name] = filteredData; // Store only the filtered data in uploadedFiles
 
-// Function to process CSV content
-function processCSV(content) {
-    const rows = content.split('\n').map(row => row.split(',')); // Split into rows and cells
-    return rows; // Return the processed CSV data
-}
-
-// Function to process XLSX content
-function processXLSX(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-
-        reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' }); // Use the XLSX library to read the workbook
-            
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]]; // Get the first sheet
-            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }); // Convert to JSON
-            resolve(jsonData); // Resolve with the XLSX data
-        };
-
-        reader.onerror = function(error) {
-            reject(error); // Reject the promise on error
-        };
-
-        reader.readAsArrayBuffer(file); // Read XLSX file as binary
+                combinedData = mergeDataFromFiles(); // Merge data from all uploaded files
+                saveToLocalStorage(); // Save to localStorage after file is uploaded
+                displayTable(combinedData); // Display the filtered data in the table
+            }
+        });
     });
-}
+});
 
-
-// Merge headers from all files
+// Merge headers from all files (Only for specific columns)
 function mergeHeadersFromFiles() {
-    let allHeaders = new Set();
-    Object.values(uploadedFiles).forEach(fileData => {
-        if (Array.isArray(fileData) && Array.isArray(fileData[0])) {
-            fileData[0].forEach(header => allHeaders.add(header));
-        } else {
-            console.warn("Unexpected data structure in uploadedFiles:", fileData);
-        }
-    });
-    return Array.from(allHeaders);
+    return ["Sl No", "Date", "User ID", "URL"];
 }
 
-
-// Merge data from all files and remove duplicate links per username
+// Merge data from all uploaded files (Only A, D, G, I columns)
 function mergeDataFromFiles() {
     let mergedData = [];
-    const uniqueLinksMap = {}; // To track unique links per username
+    const uniqueLinksMap = {}; // To track unique links per user ID
 
     Object.values(uploadedFiles).forEach(fileData => {
-        for (let i = 1; i < fileData.length; i++) {
-            let row = new Array(headers.length).fill('');
-            const username = fileData[i][0];
-            const links = fileData[i].slice(2); // Links start from the third column
+        for (let i = 1; i < fileData.length; i++) { // Start from the second row to skip headers
+            let row = new Array(4).fill(''); // Only 4 columns for Sl No, Date, User ID, URLs
+            const userId = fileData[i][2]; // User ID is in the third column of the filtered data
+            const links = fileData[i][3]; // URLs are in the fourth column of the filtered data
 
-            // Initialize an empty set for unique links if not already present for the username
-            if (!uniqueLinksMap[username]) {
-                uniqueLinksMap[username] = new Set();
+            // Initialize unique links set if not present for user ID
+            if (!uniqueLinksMap[userId]) {
+                uniqueLinksMap[userId] = new Set();
             }
 
-            // Filter out duplicate links by adding only unique links to the merged data
-            const uniqueLinks = links.filter(link => {
-                if (link && !uniqueLinksMap[username].has(link)) {
-                    uniqueLinksMap[username].add(link); // Add the unique link to the set
-                    return true;
-                }
-                return false; // Exclude duplicate links
-            });
-
-            // Construct the row with the username, user ID, and unique links
-            row[0] = username;
-            row[1] = fileData[i][1]; // Assuming user ID is in the second column
-            uniqueLinks.forEach((link, index) => {
-                row[index + 2] = link; // Fill the row starting from the third column
-            });
-
-            mergedData.push(row);
+            // Add only unique URLs for this user ID
+            if (links && !uniqueLinksMap[userId].has(links)) {
+                uniqueLinksMap[userId].add(links);
+                row[0] = fileData[i][0]; // Sl No
+                row[1] = fileData[i][1]; // Date
+                row[2] = userId; // User ID
+                row[3] = links; // URLs
+                mergedData.push(row); // Add this row to the merged data
+            }
         }
     });
 
@@ -220,50 +132,65 @@ function removeEmptyRecords() {
     });
 }
 
-// Define the handleDateFilter function
-function handleDateFilter() {
-    const selectedDate = document.getElementById('dateFilter').value; // Get the selected date
-    console.log(`Selected Date: ${selectedDate}`); // Debug: log selected date
-
-    // Validate the date format (DD-MM-YYYY)
-    if (!validateDate(selectedDate)) {
-        console.log("Invalid date format. Please use DD-MM-YYYY.");
-        return; // Exit if the date is invalid
+// Function to filter data by selected date
+function filterDataByDate(selectedDate, data) {
+    if (!selectedDate) {
+        return data; // If no date is selected, return all data
     }
 
-    // If date is valid, display the table with filtered data
-    displayTable(combinedData); 
+    return data.filter(row => {
+        const rowDate = row[2]; // Assuming date is in the third column
+        return rowDate === selectedDate; // Match the date exactly
+    });
 }
 
-// Helper function to validate the date format (DD-MM-YYYY)
-function validateDate(dateStr) {
-    const regex = /^\d{2}-\d{2}-\d{4}$/; // Matches DD-MM-YYYY
-    const isValid = regex.test(dateStr); // Check if date format is valid
+function processCSV(file, callback) {
+    const reader = new FileReader();
 
-    // Additional debug log to show validation result
-    console.log(`Is date valid: ${isValid}`);
-    return isValid; // Return true if valid
+    reader.onload = function (e) {
+        const contents = e.target.result;
+        const rows = contents.split('\n'); // Split the CSV into rows
+
+        const data = [];
+        
+        rows.forEach((row, index) => {
+            const columns = row.split(','); // Split each row into columns
+            
+            // Skip if the row doesn't have enough columns (minimum 9 columns: A, D, G, I)
+            if (columns.length < 9) return;
+            
+            // Extract the necessary columns (assuming 0-based index for A, D, G, I):
+            const slNo = columns[0]; // Column A: Sl No
+            const date = columns[3]; // Column D: Date (Date Receipt)
+            const userId = columns[6]; // Column G: User ID
+            const url = columns[8]; // Column I: URL Links
+            
+            // Skip empty rows or rows with no userId or URL
+            if (!slNo || !date || !userId || !url) return;
+
+            // Push the selected data (Sl No, Date, User ID, URL) into the data array
+            data.push([slNo, date, userId, url]);
+        });
+
+        // Once the data is processed, call the callback function with the filtered data
+        callback(data);
+    };
+
+    reader.readAsText(file); // Read the file as text
 }
 
-
-let currentPage = 1;
-const rowsPerPage = 100; // Set how many rows to show per page
-
+// Call this function wherever you display the table or modify the data
 function displayTable(data) {
     removeEmptyRecords(); // Remove empty records before displaying the table
 
     const selectedDate = document.getElementById('dateFilter').value; // Get the selected date from the input
     const filteredData = filterDataByDate(selectedDate, data); // Filter data by selected date
 
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-    const paginatedData = filteredData.slice(start, end); // Paginate data
-
     const tableBody = document.getElementById('tableBody');
     const dataTable = document.getElementById('dataTable');
     tableBody.innerHTML = ''; // Clear existing contents
 
-    if (!paginatedData || paginatedData.length === 0) {
+    if (!filteredData || filteredData.length === 0) {
         dataTable.style.display = 'none'; // Hide table if no data
         return;
     }
@@ -274,15 +201,15 @@ function displayTable(data) {
     const groupedData = {};
 
     // Group and process data
-    paginatedData.forEach(row => {
+    filteredData.forEach(row => {
         const slNo = row[0]; // Sl No. from column A
-        const date = row[3]; // Date (Date Receipt) from column D
-        const accountId = row[6]; // Account ID from column G
-        const url = row[8]; // URL from column I
+        const date = row[1]; // Date (Date Receipt) from column D
+        const userId = row[2]; // User ID from column G
+        const url = row[3]; // URL from column I
 
-        // Initialize the grouped data if the accountId doesn't exist
-        if (!groupedData[accountId]) {
-            groupedData[accountId] = {
+        // Initialize the grouped data if the userId doesn't exist
+        if (!groupedData[userId]) {
+            groupedData[userId] = {
                 slNo: slNo,
                 date: date,
                 urls: new Set() // Use Set to avoid duplicate URLs
@@ -291,18 +218,18 @@ function displayTable(data) {
 
         // Add non-empty URLs and automatically filter out duplicates using the Set
         if (url) {
-            groupedData[accountId].urls.add(url.trim()); // Trim to remove extra spaces
+            groupedData[userId].urls.add(url.trim()); // Trim to remove extra spaces
         }
     });
 
     // Populate the table with grouped data
-    for (const accountId in groupedData) {
-        const userData = groupedData[accountId];
+    for (const userId in groupedData) {
+        const userData = groupedData[userId];
         const slNo = userData.slNo;
         const date = userData.date;
         const urls = Array.from(userData.urls); // Convert the Set back to an array
 
-        // Create a new row for account ID
+        // Create a new row for user ID
         const userRow = document.createElement('tr');
         
         // Sl No. Cell
@@ -311,11 +238,11 @@ function displayTable(data) {
         slNoCell.classList.add('sl-no'); // Add the sl-no class
         userRow.appendChild(slNoCell);
 
-        // Account ID Cell
-        const accountIdCell = document.createElement('td');
-        accountIdCell.textContent = accountId;
-        accountIdCell.classList.add('account-id'); // Add the account-id class
-        userRow.appendChild(accountIdCell);
+        // User ID Cell
+        const userIdCell = document.createElement('td');
+        userIdCell.textContent = userId;
+        userIdCell.classList.add('user-id'); // Add the user-id class
+        userRow.appendChild(userIdCell);
 
         // Date Cell
         const dateCell = document.createElement('td');
@@ -323,14 +250,14 @@ function displayTable(data) {
         dateCell.classList.add('date'); // Add the date class
         userRow.appendChild(dateCell);
 
-        // Add copy button for account ID
-        const copyAccountIdBtn = document.createElement('button');
-        copyAccountIdBtn.textContent = 'Copy Account ID';
-        copyAccountIdBtn.classList.add('btn-copy');
-        copyAccountIdBtn.onclick = function () {
-            copyToClipboard(accountId); // Function to copy account ID to clipboard
+        // Add copy button for user ID
+        const copyUserIdBtn = document.createElement('button');
+        copyUserIdBtn.textContent = 'Copy User ID';
+        copyUserIdBtn.classList.add('btn-copy');
+        copyUserIdBtn.onclick = function () {
+            copyToClipboard(userId); // Function to copy user ID to clipboard
         };
-        accountIdCell.appendChild(copyAccountIdBtn); // Add the copy button to the account ID cell
+        userIdCell.appendChild(copyUserIdBtn); // Add the copy button to the user ID cell
 
         // Add "Delete Record" button
         const deleteRecordCell = document.createElement('td');
@@ -338,12 +265,12 @@ function displayTable(data) {
         deleteRecordBtn.textContent = 'Delete Record';
         deleteRecordBtn.classList.add('btn-delete');
         deleteRecordBtn.onclick = function () {
-            deleteRecord(accountId); // Pass account ID to delete the entire record
+            deleteRecord(userId); // Pass user ID to delete the entire record
         };
         deleteRecordCell.appendChild(deleteRecordBtn); // Add the delete record button to the row
         userRow.appendChild(deleteRecordCell); // Append delete button cell to the row
 
-        tableBody.appendChild(userRow); // Add the account ID row to the table body
+        tableBody.appendChild(userRow); // Add the user ID row to the table body
 
         // Create a new row for URLs
         const urlsRow = document.createElement('tr');
@@ -382,7 +309,7 @@ function displayTable(data) {
             deleteUrlBtn.classList.add('btn-delete');
             deleteUrlBtn.style.marginLeft = '10px';
             deleteUrlBtn.onclick = function () {
-                deleteLink(accountId, url); // Pass account ID and the actual URL value to delete
+                deleteLink(userId, url); // Pass user ID and the actual URL value to delete
             };
 
             urlCol.appendChild(deleteUrlBtn); // Append delete button to URL column
@@ -392,68 +319,14 @@ function displayTable(data) {
         urlsRow.appendChild(urlsCell); // Append URLs cell to URLs row
         tableBody.appendChild(urlsRow); // Add the URLs row to the table body
     }
-
-    // Update pagination controls after displaying the data
-    updatePaginationControls(filteredData.length);
-}
-
-function updatePaginationControls(totalRows) {
-    const totalPages = Math.ceil(totalRows / rowsPerPage);
-    const paginationContainer = document.getElementById('pagination');
-
-    if (!paginationContainer) {
-        console.error("Pagination container not found");
-        return; // Exit if the element is not found
-    }
-
-    paginationContainer.innerHTML = ''; // Clear old pagination buttons
-
-    for (let i = 1; i <= totalPages; i++) {
-        const pageButton = document.createElement('button');
-        pageButton.textContent = i;
-        pageButton.onclick = () => {
-            currentPage = i;
-            displayTable(combinedData); // Update the displayed table based on the new page
-        };
-
-        if (i === currentPage) {
-            pageButton.classList.add('active');
-        }
-
-        paginationContainer.appendChild(pageButton);
-    }
 }
 
 
-
-
-
-// Update your filter logic to compare correctly
-function filterDataByDate(selectedDate, data) {
-    if (!selectedDate) {
-        console.log("No valid date selected, returning all data."); // Debug log
-        return data; // Return all data if no valid date is selected
-    }
-
-    // Debug log to see the selected date being compared
-    console.log(`Filtering data for selected date: ${selectedDate}`);
-
-    return data.filter(row => {
-        const recordDate = row[2]; // Assuming the date is in the third column
-        // Debug log to see the record dates
-        console.log(`Comparing recordDate: ${recordDate} with selectedDate: ${selectedDate}`);
-        return recordDate === selectedDate; // Direct comparison in DD-MM-YYYY format
-    });
-}
 
 // Event listener for applying the date filter
 document.getElementById('applyDateFilter').addEventListener('click', function () {
-    handleDateFilter(); // Call handleDateFilter to validate and apply the filter
-    console.log("Combined Data: ", combinedData); // Log the combined data
+    displayTable(combinedData); // Refresh the table with the filtered data
 });
-
-
-
 
 
 // Function to copy text to clipboard
@@ -465,6 +338,15 @@ function copyToClipboard(text) {
     });
 }
 
+
+// Function to copy text to clipboard
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Copied to clipboard: ' + text); // Optional feedback
+    }).catch(err => {
+        console.error('Could not copy text: ', err); // Error handling
+    });
+}
 // Function to delete a specific link by matching the exact link
 function deleteLink(username, linkToDelete) {
     // Flag to track whether any link was deleted
@@ -514,9 +396,8 @@ function deleteRecord(username) {
     // Find the user's data and remove the entire record
     Object.keys(uploadedFiles).forEach(fileName => {
         const fileData = uploadedFiles[fileName];
-
         // Use a filter function to create a new array without the deleted record
-        const newFileData = fileData.filter(row => row[1] !== username); // Assuming username is in the second column (index 1)
+        const newFileData = fileData.filter(row => row[0] !== username); // Filter out rows that match the username
 
         // Update the uploadedFiles with the new data (without the deleted record)
         uploadedFiles[fileName] = newFileData;
@@ -529,50 +410,41 @@ function deleteRecord(username) {
 }
 
 
-
 // Search functionality
+// Search functionality with enhanced username matching, trimming, and consistency improvements
 document.getElementById('searchInput').addEventListener('input', function () {
-    const searchTerm = this.value.toLowerCase().trim(); // Trim spaces from search term
+    const searchTerm = this.value.toLowerCase().trim(); // Trim any spaces from the search term
     const dataTable = document.getElementById('dataTable');
-    
-    // If the search box is empty, show all data
+    // If the search box is empty, display all combined data
     if (searchTerm === '') {
-        displayTable(combinedData); // Display the full table
+        // displayTable(combinedData);
+        dataTable.style.display = 'none';
     } else {
-        dataTable.style.display = 'table'; // Make sure the table is visible
+        dataTable.style.display = 'table';
+        const matchedUsernames = new Set();
 
-        // Initialize an empty array to store matched rows
-        const matchedRecords = [];
-        
-        // Implement BFS-like search
-        for (let i = 0; i < combinedData.length; i++) {
-            let queue = [combinedData[i]]; // Initialize the queue with the current row
-            
-            // Process each row
-            while (queue.length > 0) {
-                let currentRow = queue.shift(); // Dequeue the first element
+        // First pass: Identify all usernames where the search term exists in any field
+        combinedData.forEach(row => {
+            const username = row[0].trim(); // Assuming username is in the first column, trimming spaces
+            const userId = row[1].trim(); // Assuming user ID is in the second column, trimming spaces
+            const restOfFields = row.slice(2); // Rest are considered links or other data
 
-                // Check each cell in the current row
-                for (let j = 0; j < currentRow.length; j++) {
-                    const cellValue = currentRow[j];
+            // Normalize all fields to ensure proper matching (avoiding undefined/null/empty values)
+            const normalizedRow = [username, userId, ...restOfFields].filter(Boolean); // Filter out empty/null cells
 
-                    // If the cell contains the search term, mark the row
-                    if (typeof cellValue === 'string' && cellValue.toLowerCase().includes(searchTerm)) {
-                        matchedRecords.push(combinedData[i]); // Add the entire row to the result
-                        break; // No need to check further cells if the row matches
-                    }
-                }
+            // Search for the term in the row (username, userId, or any other field)
+            if (normalizedRow.some(field => field.toString().toLowerCase().includes(searchTerm))) {
+                matchedUsernames.add(username); // If found, add the username (trimmed) to the set
             }
-        }
+        });
 
-        // Display the matched records
-        displayTable(matchedRecords); // Show filtered data
+        // Second pass: Filter all records that have usernames from the matchedUsernames set
+        const filteredData = combinedData.filter(row => matchedUsernames.has(row[0].trim())); // Trim username in filter too
+
+        // Display the filtered data (all records with matching usernames)
+        displayTable(filteredData);
     }
 });
-
-
-
-
 
 
 // Export all data as one CSV file
