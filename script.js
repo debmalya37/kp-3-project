@@ -8,6 +8,7 @@ const validUsername = "admin";
 const validPassword = "password123";
 
 // On page load, display the login modal
+// On page load, display the login modal
 document.addEventListener('DOMContentLoaded', function () {
     const loginModal = document.getElementById('loginModal');
     loginModal.style.display = 'block'; // Show login modal
@@ -15,8 +16,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Add event listener for date filter
     const applyDateFilterBtn = document.getElementById('applyDateFilter');
-    applyDateFilterBtn.addEventListener('click', handleDateFilter);
+    applyDateFilterBtn.addEventListener('click', handleDateFilter); // Ensure this references the newly defined function
 });
+
 
 // Handle login form submission
 document.getElementById('loginForm').addEventListener('submit', function (e) {
@@ -65,26 +67,86 @@ function saveToLocalStorage() {
     localStorage.setItem('combinedData', JSON.stringify(combinedData));
 }
 
-// Handle CSV Upload
-document.getElementById('csvFileInput').addEventListener('change', function (e) {
-    const dataTable = document.getElementById('dataTable'); 
-    const files = e.target.files;
-    Array.from(files).forEach(file => {
-        Papa.parse(file, {
-            complete: function (results) {
-                uploadedFiles[file.name] = results.data; // Store the parsed CSV in uploadedFiles
-                headers = mergeHeadersFromFiles();
-                combinedData = mergeDataFromFiles();
-                updateFileSelector();
-                updateFileList();
-                saveToLocalStorage(); // Save to localStorage after file is uploaded
-                displayTable(combinedData); 
-                dataTable.style.display = 'none';
-                // Display all data after upload
+document.getElementById('csvFileInput').addEventListener('change', function(event) {
+    const files = event.target.files; // Get the selected files
+    const promises = []; // Array to hold promises for each file processing
+
+    for (const file of files) {
+        const fileExtension = file.name.split('.').pop().toLowerCase(); // Get the file extension
+
+        // Create a promise for each file to handle processing
+        const fileProcessingPromise = new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const fileContent = e.target.result; // Read the file content
+
+                if (fileExtension === 'csv') {
+                    // Process CSV file
+                    const csvData = processCSV(fileContent);
+                    resolve(csvData);
+                } else if (fileExtension === 'xlsx') {
+                    // Process XLSX file
+                    processXLSX(file).then(resolve).catch(reject);
+                } else {
+                    reject(new Error('Unsupported file type'));
+                }
+            };
+
+            // Read the file based on its type
+            if (fileExtension === 'csv') {
+                reader.readAsText(file); // Read CSV file as text
+            } else if (fileExtension === 'xlsx') {
+                reader.readAsArrayBuffer(file); // Read XLSX file as binary
             }
         });
-    });
+
+        promises.push(fileProcessingPromise); // Add the promise to the array
+    }
+
+    // Process all file promises
+    Promise.all(promises)
+        .then(dataArrays => {
+            // Combine all data arrays into one and display the result
+            const combinedData = [].concat(...dataArrays); // Flatten the array
+            updateFileList();
+            updateFileSelector();
+            saveToLocalStorage(); 
+            displayTable(combinedData); // Display the combined data
+        })
+        .catch(error => {
+            console.error('Error processing files:', error);
+        });
 });
+
+// Function to process CSV content
+function processCSV(content) {
+    const rows = content.split('\n').map(row => row.split(',')); // Split into rows and cells
+    return rows; // Return the processed CSV data
+}
+
+// Function to process XLSX content
+function processXLSX(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' }); // Use the XLSX library to read the workbook
+            
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]]; // Get the first sheet
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }); // Convert to JSON
+            resolve(jsonData); // Resolve with the XLSX data
+        };
+
+        reader.onerror = function(error) {
+            reject(error); // Reject the promise on error
+        };
+
+        reader.readAsArrayBuffer(file); // Read XLSX file as binary
+    });
+}
+
 
 // Merge headers from all files
 function mergeHeadersFromFiles() {
@@ -147,19 +209,32 @@ function removeEmptyRecords() {
     });
 }
 
-// Function to filter data by selected date
-function filterDataByDate(selectedDate, data) {
-    if (!selectedDate) {
-        return data; // If no date is selected, return all data
+// Define the handleDateFilter function
+function handleDateFilter() {
+    const selectedDate = document.getElementById('dateFilter').value; // Get the selected date
+    console.log(`Selected Date: ${selectedDate}`); // Debug: log selected date
+
+    // Validate the date format (DD-MM-YYYY)
+    if (!validateDate(selectedDate)) {
+        console.log("Invalid date format. Please use DD-MM-YYYY.");
+        return; // Exit if the date is invalid
     }
 
-    return data.filter(row => {
-        const rowDate = row[2]; // Assuming date is in the third column
-        return rowDate === selectedDate; // Match the date exactly
-    });
+    // If date is valid, display the table with filtered data
+    displayTable(combinedData); 
 }
 
-// Call this function wherever you display the table or modify the data
+// Helper function to validate the date format (DD-MM-YYYY)
+function validateDate(dateStr) {
+    const regex = /^\d{2}-\d{2}-\d{4}$/; // Matches DD-MM-YYYY
+    const isValid = regex.test(dateStr); // Check if date format is valid
+
+    // Additional debug log to show validation result
+    console.log(`Is date valid: ${isValid}`);
+    return isValid; // Return true if valid
+}
+
+
 function displayTable(data) {
     removeEmptyRecords(); // Remove empty records before displaying the table
 
@@ -183,12 +258,14 @@ function displayTable(data) {
     filteredData.forEach(row => {
         const username = row[0]; // Assuming username is in the first column
         const userId = row[1]; // Assuming user ID is in the second column
-        const links = row.slice(3); // The rest are links, assuming the date is in the third column
+        const date = row[2]; // Date is assumed to be in the third column
+        const links = row.slice(3); // The rest are links
 
         // Initialize the grouped data if the username doesn't exist
         if (!groupedData[username]) {
             groupedData[username] = {
                 userId: userId,
+                date: date,
                 links: new Set() // Use Set to avoid duplicate links
             };
         }
@@ -205,6 +282,7 @@ function displayTable(data) {
     for (const username in groupedData) {
         const userData = groupedData[username];
         const userId = userData.userId;
+        const date = userData.date;
         const links = Array.from(userData.links); // Convert the Set back to an array
 
         // Create a new row for username
@@ -219,6 +297,11 @@ function displayTable(data) {
         userIdCell.textContent = userId;
         userIdCell.classList.add('userid'); // Add the userId class
         userRow.appendChild(userIdCell);
+
+        const dateCell = document.createElement('td');
+        dateCell.textContent = date; // Display the date in a new column
+        dateCell.classList.add('Date'); // Add the date class
+        userRow.appendChild(dateCell);
 
         // Add copy button for user ID
         const copyUserIdBtn = document.createElement('button');
@@ -237,15 +320,16 @@ function displayTable(data) {
         deleteRecordBtn.onclick = function () {
             deleteRecord(username); // Pass username to delete the entire record
         };
-        deleteRecordCell.appendChild(deleteRecordBtn);
-        userRow.appendChild(deleteRecordCell); // Add the delete record button to the row
+        deleteRecordCell.appendChild(deleteRecordBtn); // Add the delete record button to the row
+        userRow.appendChild(deleteRecordCell); // Append delete button cell to the row
 
-        tableBody.appendChild(userRow);
+        tableBody.appendChild(userRow); // Add the username row to the table body
 
         // Create a new row for links
         const linksRow = document.createElement('tr');
         const linksCell = document.createElement('td');
         linksCell.classList.add('links'); // Add the links class
+        linksCell.colSpan = 3; // Span the cell across the required columns
 
         // Create columns for each link
         links.forEach((link) => {
@@ -259,7 +343,7 @@ function displayTable(data) {
             linkText.target = '_blank'; // Open in a new tab
             linkText.rel = 'noopener noreferrer'; // Security improvement
 
-            linkCol.appendChild(linkText);
+            linkCol.appendChild(linkText); // Append link text
 
             // Add copy button for each link
             const copyLinkBtn = document.createElement('button');
@@ -285,25 +369,38 @@ function displayTable(data) {
             linksCell.appendChild(linkCol); // Append the column to the row
         });
 
-        linksRow.appendChild(linksCell);
-        tableBody.appendChild(linksRow);
+        linksRow.appendChild(linksCell); // Append links cell to links row
+        tableBody.appendChild(linksRow); // Add the links row to the table body
     }
+}
+
+
+// Update your filter logic to compare correctly
+function filterDataByDate(selectedDate, data) {
+    if (!selectedDate) {
+        console.log("No valid date selected, returning all data."); // Debug log
+        return data; // Return all data if no valid date is selected
+    }
+
+    // Debug log to see the selected date being compared
+    console.log(`Filtering data for selected date: ${selectedDate}`);
+
+    return data.filter(row => {
+        const recordDate = row[2]; // Assuming the date is in the third column
+        // Debug log to see the record dates
+        console.log(`Comparing recordDate: ${recordDate} with selectedDate: ${selectedDate}`);
+        return recordDate === selectedDate; // Direct comparison in DD-MM-YYYY format
+    });
 }
 
 // Event listener for applying the date filter
 document.getElementById('applyDateFilter').addEventListener('click', function () {
-    displayTable(combinedData); // Refresh the table with the filtered data
+    handleDateFilter(); // Call handleDateFilter to validate and apply the filter
+    console.log("Combined Data: ", combinedData); // Log the combined data
 });
 
 
-// Function to copy text to clipboard
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        alert('Copied to clipboard: ' + text); // Optional feedback
-    }).catch(err => {
-        console.error('Could not copy text: ', err); // Error handling
-    });
-}
+
 
 
 // Function to copy text to clipboard
@@ -314,6 +411,7 @@ function copyToClipboard(text) {
         console.error('Could not copy text: ', err); // Error handling
     });
 }
+
 // Function to delete a specific link by matching the exact link
 function deleteLink(username, linkToDelete) {
     // Flag to track whether any link was deleted

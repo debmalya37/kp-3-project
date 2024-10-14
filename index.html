@@ -23,7 +23,7 @@
             </form>
         </div>
     </div>
-
+    <div id="loadingIndicator" class="loading-indicator" style="display: none;">Loading...</div>
     <!-- CSV Manager -->
     <div id="csvManager" class="container" style="display: none;">
         <h1 style="display: flex; justify-content: space-between; align-items: center;">
@@ -37,7 +37,8 @@
                     <!-- Uploaded CSV files will appear here -->
                 </ul>
                 <label for="csvFileInput" class="file-upload-label">Upload CSV Files</label>
-                <input type="file" id="csvFileInput" accept=".csv" multiple>
+                <input type="file" id="csvFileInput" accept=".csv, .xlsx" multiple>
+
             </div>
 
             <div class="content">
@@ -46,7 +47,8 @@
                     
                     <!-- New Date Filter -->
                     <label for="dateFilter">Filter by Date:</label>
-                    <input type="date" id="dateFilter">
+                    <input type="text" id="dateFilter" placeholder="DD-MM-YYYY" />
+
                     <button id="applyDateFilter" class="btn-secondary">Apply Date Filter</button>
 
                     <button id="addRow" class="btn-secondary">Add New Row</button>
@@ -84,6 +86,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
