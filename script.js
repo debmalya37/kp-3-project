@@ -327,20 +327,22 @@ function filterDataByDate(selectedDate, data) {
 
     const filteredData = [];
 
-    // Convert the selected date from "DD-MM-YYYY" to "YYYY-MM-DD" (or another comparable format)
-    const [day, month, year] = selectedDate.split('-');
-    const filterDate = new Date(`${year}-${month}-${day}`).setHours(0, 0, 0, 0);
+    // Convert the selected date from "YYYY-MM-DD" (default from input) to "DD-MM-YYYY"
+    const [year, month, day] = selectedDate.split('-'); // Input date is in "YYYY-MM-DD"
+    const formattedSelectedDate = `${day}-${month}-${year}`; // Convert to "DD-MM-YYYY"
 
     // Filter the data by comparing the dates
     data.forEach(row => {
-        const rowDate = new Date(row[1]).setHours(0, 0, 0, 0); // Column D (index 1) contains the date
-        if (rowDate === filterDate) {
+        const rowDate = row[1]; // Column D (index 1) contains the date in "DD-MM-YYYY" format
+
+        if (rowDate === formattedSelectedDate) {
             filteredData.push(row); // If the row's date matches the filter, add it to the filteredData
         }
     });
 
     return filteredData;
 }
+
 
 
 
