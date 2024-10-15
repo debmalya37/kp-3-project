@@ -321,27 +321,27 @@ function displayTable(data) {
     }
 }
 
-// Function to filter data by selected date in "DD-MM-YYYY" format
+// Function to filter data by selected date in "M/D/YY" format
 function filterDataByDate(selectedDate, data) {
     if (!selectedDate) return data; // If no date is selected, return the original data
 
     const filteredData = [];
 
-    // Convert the selected date from "YYYY-MM-DD" (default from input) to "DD-MM-YYYY"
-    const [year, month, day] = selectedDate.split('-'); // Input date is in "YYYY-MM-DD"
-    const formattedSelectedDate = `${day}-${month}-${year}`; // Convert to "DD-MM-YYYY"
+    // Convert the selected date from "YYYY-MM-DD" to a comparable Date object
+    const [year, month, day] = selectedDate.split('-');
+    const filterDate = new Date(year, month - 1, day).setHours(0, 0, 0, 0); // Create a Date object from the selected date
 
     // Filter the data by comparing the dates
     data.forEach(row => {
-        const rowDate = row[1]; // Column D (index 1) contains the date in "DD-MM-YYYY" format
-
-        if (rowDate === formattedSelectedDate) {
+        const rowDate = new Date(row[1]).setHours(0, 0, 0, 0); // Column D (index 1) contains the date in "M/D/YY" format
+        if (rowDate === filterDate) {
             filteredData.push(row); // If the row's date matches the filter, add it to the filteredData
         }
     });
 
     return filteredData;
 }
+
 
 
 
@@ -471,46 +471,54 @@ document.getElementById('searchInput').addEventListener('input', function () {
 
 // Export all data as one CSV file
 document.getElementById('exportBtn').addEventListener('click', function () {
-    let csvContent = 'Username,UserId,Links\n'; // Set CSV headers with just "Links" without platform-specific names
+    let csvContent = 'Username,Date,URLs\n'; // Set CSV headers
+
+    // Create an object to merge data by username
+    const mergedData = {};
 
     combinedData.forEach(row => {
-        const username = row[0]; // Assuming username is in the first column
-        const userId = row[1];   // Assuming user ID is in the second column
-        const links = row.slice(2).filter(link => link); // Get links and filter out empty ones
+        const username = row[2]; // Assuming username is in the first column
+        const date = row[1];      // Date from column D
+        const url = row[3];       // URL from column I
 
-        // Create separate arrays for each platform
-        let facebookLinks = [];
-        let instagramLinks = [];
-        let twitterLinks = [];
-        let youtubeLinks = [];
+        // If username doesn't exist in mergedData, initialize it
+        if (!mergedData[username]) {
+            mergedData[username] = {
+                date: date,
+                urls: [] // Array to hold URLs
+            };
+        }
 
-        // Sort links into the appropriate platform arrays
-        links.forEach(link => {
-            if (link.includes('facebook.com')) {
-                facebookLinks.push(link);
-            } else if (link.includes('instagram.com')) {
-                instagramLinks.push(link);
-            } else if (link.includes('twitter.com')) {
-                twitterLinks.push(link);
-            } else if (link.includes('youtube.com')) {
-                youtubeLinks.push(link);
-            }
-        });
+        // Add URL to the array if it's not already included
+        if (url && !mergedData[username].urls.includes(url)) {
+            mergedData[username].urls.push(url);
+        }
+    });
 
-        // Prepare the row for CSV
+    // Populate the CSV content with merged data
+    for (const username in mergedData) {
+        const { date, urls } = mergedData[username];
+
+        // Create a new row for CSV
         const csvRow = [];
         csvRow.push(username); // Add username to the row
-        csvRow.push(userId);   // Add user ID to the row
+        // csvRow.push(slNo);     // Add Sl No. to the row
+        csvRow.push(date);     // Add date to the row
 
-        // Combine all sorted platform links into a single array
-        const sortedLinks = [...facebookLinks, ...instagramLinks, ...twitterLinks, ...youtubeLinks];
+        // Add each URL to the row, labeling them as URL 1, URL 2, etc.
+        urls.forEach((url, index) => {
+            csvRow.push(url); // Add URL to the row
+        });
 
-        // Add sorted links to the row, and ensure each link is in its own column
-        addPlatformLinks(csvRow, sortedLinks, sortedLinks.length);
+        // Fill in empty columns if there are less than the max expected columns
+        const maxUrlColumns = 10; // Define the maximum number of URL columns
+        for (let i = urls.length; i < maxUrlColumns; i++) {
+            csvRow.push(''); // Add empty entries for any missing URL columns
+        }
 
         // Join the row and add to CSV content
         csvContent += csvRow.join(',') + '\n'; // Join the row and add a new line
-    });
+    }
 
     // Download the CSV file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -519,6 +527,7 @@ document.getElementById('exportBtn').addEventListener('click', function () {
     link.download = 'combined_data.csv';
     link.click();
 });
+
 
 // Helper function to add platform-specific links to the CSV row
 function addPlatformLinks(csvRow, platformLinks, maxLinks) {
