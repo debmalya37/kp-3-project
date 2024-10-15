@@ -14,8 +14,8 @@ document.addEventListener('DOMContentLoaded', function () {
     loadFromLocalStorage(); // Load uploaded files from localStorage when page loads
 
     // Add event listener for date filter
-    // const applyDateFilterBtn = document.getElementById('applyDateFilter');
-    // applyDateFilterBtn.addEventListener('click', handleDateFilter);
+    const applyDateFilterBtn = document.getElementById('applyDateFilter');
+    applyDateFilterBtn.addEventListener('click', filterDataByDate);
 });
 
 // Handle login form submission
@@ -78,6 +78,7 @@ document.getElementById('csvFileInput').addEventListener('change', function (e) 
                 combinedData = mergeDataFromFiles(); // Merge data from all uploaded files
                 saveToLocalStorage(); // Save to localStorage after file is uploaded
                 displayTable(combinedData); // Display the filtered data in the table
+                loadFromLocalStorage();
             }
         });
     });
@@ -411,13 +412,16 @@ function copyToClipboard(text) {
 // Function to delete the entire record (username, userId, and all links)
 // Delete a record based on userId
 function deleteRecord(userId) {
+    const dataTable = document.getElementById('dataTable'); 
     combinedData = combinedData.filter(row => row[2] !== userId); // Remove rows where userId matches
     saveToLocalStorage(); // Save updated data to localStorage
     displayTable(combinedData); // Refresh the table after deletion
+    dataTable.style.display = 'none';
 }
 
 // Delete a specific URL for a given userId
 function deleteLink(userId, urlToDelete) {
+    const dataTable = document.getElementById('dataTable');
     combinedData.forEach(row => {
         if (row[2] === userId) {
             const urls = row[3].split(','); // Assuming URLs are stored as a comma-separated string
@@ -427,6 +431,7 @@ function deleteLink(userId, urlToDelete) {
     });
     saveToLocalStorage(); // Save updated data to localStorage
     displayTable(combinedData); // Refresh the table after deletion
+    dataTable.style.display = 'none';
 }
 
 
@@ -674,6 +679,7 @@ function openModal(rowIndex = null) {
 // Save the new or edited row
 // Save the new or edited row
 document.getElementById('saveRow').addEventListener('click', function () {
+    const dataTable = document.getElementById('dataTable');
     const form = document.getElementById('modalForm');
     const newRow = [];
 
@@ -692,6 +698,7 @@ document.getElementById('saveRow').addEventListener('click', function () {
 
     displayTable(combinedData); // Refresh table
     saveToLocalStorage(); // Save updated data to localStorage
+    dataTable.style.display = 'none';
     document.getElementById('addRowModal').style.display = 'none'; // Close modal
 });
 
@@ -741,7 +748,9 @@ function openModal(rowIndex = null) {
 
 // Delete a row
 function deleteRow(rowIndex) {
+    const dataTable = document.getElementById('dataTable');
     combinedData.splice(rowIndex, 1); // Remove the row from data
     displayTable(combinedData); // Refresh the table
     saveToLocalStorage(); // Save updated data to localStorage
+    dataTable.style.display = 'none';
 }
