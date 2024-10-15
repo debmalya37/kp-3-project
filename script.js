@@ -184,7 +184,7 @@ function displayTable(data) {
     removeEmptyRecords(); // Remove empty records before displaying the table
 
     const selectedDate = document.getElementById('dateFilter').value; // Get the selected date from the input
-    const filteredData = filterDataByDate(selectedDate, data); // Filter data by selected date
+    const filteredData = filterDataByDate(selectedDate, data); // Filter data by the selected date
 
     const tableBody = document.getElementById('tableBody');
     const dataTable = document.getElementById('dataTable');
@@ -271,7 +271,7 @@ function displayTable(data) {
         userRow.appendChild(deleteRecordCell); // Append delete button cell to the row
 
         tableBody.appendChild(userRow); // Add the user ID row to the table body
-
+   
         // Create a new row for URLs
         const urlsRow = document.createElement('tr');
         const urlsCell = document.createElement('td');
@@ -321,22 +321,37 @@ function displayTable(data) {
     }
 }
 
+// Function to filter data by selected date in "DD-MM-YYYY" format
+function filterDataByDate(selectedDate, data) {
+    if (!selectedDate) return data; // If no date is selected, return the original data
+
+    const filteredData = [];
+
+    // Convert the selected date from "DD-MM-YYYY" to "YYYY-MM-DD" (or another comparable format)
+    const [day, month, year] = selectedDate.split('-');
+    const filterDate = new Date(`${year}-${month}-${day}`).setHours(0, 0, 0, 0);
+
+    // Filter the data by comparing the dates
+    data.forEach(row => {
+        const rowDate = new Date(row[1]).setHours(0, 0, 0, 0); // Column D (index 1) contains the date
+        if (rowDate === filterDate) {
+            filteredData.push(row); // If the row's date matches the filter, add it to the filteredData
+        }
+    });
+
+    return filteredData;
+}
+
 
 
 // Event listener for applying the date filter
 document.getElementById('applyDateFilter').addEventListener('click', function () {
-    displayTable(combinedData); // Refresh the table with the filtered data
+    const selectedDate = document.getElementById('dateFilter').value; // Get the selected date from input
+    const filteredData = filterDataByDate(selectedDate, combinedData); // Filter data based on selected date
+    displayTable(filteredData); // Display the filtered data in the table
 });
 
 
-// Function to copy text to clipboard
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        alert('Copied to clipboard: ' + text); // Optional feedback
-    }).catch(err => {
-        console.error('Could not copy text: ', err); // Error handling
-    });
-}
 
 
 // Function to copy text to clipboard
@@ -347,67 +362,72 @@ function copyToClipboard(text) {
         console.error('Could not copy text: ', err); // Error handling
     });
 }
-// Function to delete a specific link by matching the exact link
-function deleteLink(username, linkToDelete) {
-    // Flag to track whether any link was deleted
-    let linkDeleted = false;
 
-    // Loop through each file in the uploadedFiles object
-    Object.keys(uploadedFiles).forEach(fileName => {
-        const fileData = uploadedFiles[fileName];
 
-        // Loop through each row of data in the file, starting from the second row (first row is headers)
-        for (let i = 1; i < fileData.length; i++) {
-            if (fileData[i][0] === username) { // If the row belongs to the specified username
+// // Function to delete a specific link by matching the exact link
+// function deleteLink(username, linkToDelete) {
+//     let linkDeleted = false;
 
-                // Loop through the links in the current row (skip the first two columns: username and userId)
-                for (let j = 2; j < fileData[i].length; j++) {
-                    if (fileData[i][j].trim() === linkToDelete.trim()) { // Trim both for comparison
-                        // If the link matches, remove it
-                        fileData[i].splice(j, 1);
-                        j--; // Decrement j to account for the shift in indices after splice
-                        linkDeleted = true;
-                    }
-                }
+//     // Loop through each file in the uploadedFiles object
+//     Object.keys(uploadedFiles).forEach(fileName => {
+//         const fileData = uploadedFiles[fileName];
 
-                // If the row has only username and userId left, remove the entire row (no links left)
-                if (fileData[i].length === 2) {
-                    fileData.splice(i, 1);
-                    i--; // Decrement i to account for the shift in indices after splice
-                }
-            }
-        }
-    });
+//         // Loop through each row of data in the file
+//         for (let i = 1; i < fileData.length; i++) {
+//             if (fileData[i][0] === username) { // If the row belongs to the specified username
 
-    if (linkDeleted) {
-        // After modifying the data, update the combinedData and the table
-        combinedData = mergeDataFromFiles(); // Re-merge data from files
-        displayTable(combinedData); // Refresh the table
+//                 // Loop through the links in the current row (skip first two columns: username and userId)
+//                 for (let j = 2; j < fileData[i].length; j++) {
+//                     if (fileData[i][j].trim() === linkToDelete.trim()) { // Match and trim both for comparison
+//                         // Remove the matching link
+//                         fileData[i].splice(j, 1);
+//                         j--; // Adjust index after splice
+//                         linkDeleted = true;
+//                     }
+//                 }
 
-        // Save the updated data back to localStorage
-        saveToLocalStorage();
-    } else {
-        console.log("No matching link found for deletion.");
-    }
-}
+//                 // If the row has only username and userId left (no links), remove the entire row
+//                 if (fileData[i].length === 2) {
+//                     fileData.splice(i, 1);
+//                     i--; // Adjust index after removing the row
+//                 }
+//             }
+//         }
+//     });
+
+//     if (linkDeleted) {
+//         // Rebuild combinedData from uploadedFiles and refresh the table
+//         combinedData = mergeDataFromFiles(); // Re-merge data from files
+//         displayTable(combinedData); // Refresh the table display
+//         saveToLocalStorage(); // Save updated data to localStorage
+//     } else {
+//         console.log("No matching link found for deletion.");
+//     }
+// }
+
 
 // Function to delete the entire record (username, userId, and all links)
-function deleteRecord(username) {
-    // Find the user's data and remove the entire record
-    Object.keys(uploadedFiles).forEach(fileName => {
-        const fileData = uploadedFiles[fileName];
-        // Use a filter function to create a new array without the deleted record
-        const newFileData = fileData.filter(row => row[0] !== username); // Filter out rows that match the username
-
-        // Update the uploadedFiles with the new data (without the deleted record)
-        uploadedFiles[fileName] = newFileData;
-    });
-
-    // After modifying the data, update the table and save the changes
-    combinedData = mergeDataFromFiles(); // Re-merge data from files
-    displayTable(combinedData); // Refresh the table
+// Delete a record based on userId
+function deleteRecord(userId) {
+    combinedData = combinedData.filter(row => row[2] !== userId); // Remove rows where userId matches
     saveToLocalStorage(); // Save updated data to localStorage
+    displayTable(combinedData); // Refresh the table after deletion
 }
+
+// Delete a specific URL for a given userId
+function deleteLink(userId, urlToDelete) {
+    combinedData.forEach(row => {
+        if (row[2] === userId) {
+            const urls = row[3].split(','); // Assuming URLs are stored as a comma-separated string
+            const updatedUrls = urls.filter(url => url.trim() !== urlToDelete); // Remove the matching URL
+            row[3] = updatedUrls.join(','); // Update the row with the remaining URLs
+        }
+    });
+    saveToLocalStorage(); // Save updated data to localStorage
+    displayTable(combinedData); // Refresh the table after deletion
+}
+
+
 
 
 // Search functionality

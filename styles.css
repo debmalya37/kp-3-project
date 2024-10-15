@@ -242,11 +242,21 @@ th, td {
 }
 
 tbody tr:nth-child(even) {
-    background-color: #333;
+    background-color: #a6a4a4;
+    
 }
 
 tbody tr:hover {
-    background-color: #444;
+    background-color: #385fd5;
+    color: wheat;
+    font-weight: 600;
+}
+.urls :hover {
+    background-color: wheat;
+    padding: 2px;
+    border-radius: 10px;
+    padding-left: 4px;
+    padding-right: 4px;
 }
 
 th {
@@ -447,6 +457,6 @@ td.links {
 }
 
 .links a:hover {
-    color: #0721b2;
+    color: #d8dae5;
     text-decoration: underline;
 }
