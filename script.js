@@ -433,37 +433,82 @@ function deleteLink(userId, urlToDelete) {
 
 
 // Search functionality
-// Search functionality with enhanced username matching, trimming, and consistency improvements
 document.getElementById('searchInput').addEventListener('input', function () {
     const searchTerm = this.value.toLowerCase().trim(); // Trim any spaces from the search term
     const dataTable = document.getElementById('dataTable');
+
     // If the search box is empty, display all combined data
     if (searchTerm === '') {
-        // displayTable(combinedData);
-        dataTable.style.display = 'none';
+        dataTable.style.display = 'none'; // Hide table when search is cleared
     } else {
         dataTable.style.display = 'table';
         const matchedUsernames = new Set();
+        const relevantRecords = new Set();
 
         // First pass: Identify all usernames where the search term exists in any field
         combinedData.forEach(row => {
-            const username = row[0].trim(); // Assuming username is in the first column, trimming spaces
-            const userId = row[1].trim(); // Assuming user ID is in the second column, trimming spaces
-            const restOfFields = row.slice(2); // Rest are considered links or other data
+            const slNo = row[0].trim(); // Assuming Sl. No. is in column A
+            const date = row[1].trim(); // Assuming Date is in column B
+            const username = row[2].trim(); // Assuming username is in column C
+            const userId = row[3].trim(); // Assuming user ID is in column D
+            const links = row.slice(4).filter(Boolean); // Get the links (column E onward) and filter out empty cells
 
-            // Normalize all fields to ensure proper matching (avoiding undefined/null/empty values)
-            const normalizedRow = [username, userId, ...restOfFields].filter(Boolean); // Filter out empty/null cells
+            // Normalize the row fields for matching
+            const normalizedRow = [slNo, date, username, userId, ...links].filter(Boolean);
 
-            // Search for the term in the row (username, userId, or any other field)
-            if (normalizedRow.some(field => field.toString().toLowerCase().includes(searchTerm))) {
-                matchedUsernames.add(username); // If found, add the username (trimmed) to the set
+            // Check if the search term is found in any field (username, userId, links)
+            const isMatching = normalizedRow.some(field => field.toString().toLowerCase().includes(searchTerm));
+
+            // If any field matches, add the username to the matched set
+            if (isMatching) {
+                matchedUsernames.add(username);
+                relevantRecords.add(row); // Add full row to relevant records
             }
         });
 
-        // Second pass: Filter all records that have usernames from the matchedUsernames set
-        const filteredData = combinedData.filter(row => matchedUsernames.has(row[0].trim())); // Trim username in filter too
+        // Second pass: Find rows that share similarities with matched usernames
+        combinedData.forEach(row => {
+            const slNo = row[0].trim(); // Sl. No.
+            const date = row[1].trim(); // Date
+            const username = row[2].trim(); // Username
+            const userId = row[3].trim(); // User ID
+            const links = row.slice(4).filter(Boolean); // Links
 
-        // Display the filtered data (all records with matching usernames)
+            // If this row has a matching username or has data similar to the matched results, include it
+            if (matchedUsernames.has(username)) {
+                relevantRecords.add(row);
+            } else {
+                // Check for similarity in fields (except Sl. No. and Date)
+                const normalizedRow = [username, userId, ...links].filter(Boolean);
+                const hasSimilarData = [...matchedUsernames].some(matchedUsername => {
+                    return normalizedRow.some(field => field.toString().toLowerCase().includes(matchedUsername.toLowerCase()));
+                });
+
+                // If there's a similarity in fields except Sl. No. and Date, include the row
+                if (hasSimilarData) {
+                    relevantRecords.add(row);
+                }
+            }
+        });
+
+        // Exclude rows that only match Sl. No. or Date without other similarities
+        const filteredData = Array.from(relevantRecords).filter(row => {
+            const slNo = row[0].trim();
+            const date = row[1].trim();
+            const username = row[2].trim();
+            const userId = row[3].trim();
+            const links = row.slice(4).filter(Boolean);
+
+            // Only include rows that have a meaningful similarity beyond Sl. No. or Date
+            return !(
+                (slNo.toLowerCase().includes(searchTerm) || date.toLowerCase().includes(searchTerm)) &&
+                !username.toLowerCase().includes(searchTerm) &&
+                !userId.toLowerCase().includes(searchTerm) &&
+                !links.some(link => link.toLowerCase().includes(searchTerm))
+            );
+        });
+
+        // Display the filtered data
         displayTable(filteredData);
     }
 });
