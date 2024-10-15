@@ -282,7 +282,10 @@ button {
     margin-right: 2px;
     margin-left: 2px;
 }
-
+.imp-info {
+    color: grey;
+    font-size: small;
+}
 button:hover {
     background-color: #7481f7;
     color: rgb(5, 15, 87);
@@ -297,6 +300,9 @@ button.delete {
     color: white;
     margin-top: 2px;
     margin-bottom: 2px;
+}
+#exportBtn{
+    background-color: rgb(13, 116, 13);
 }
 
 /* Modal form styles */
