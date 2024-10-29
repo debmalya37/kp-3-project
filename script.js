@@ -184,143 +184,139 @@ function processCSV(file, callback) {
 function displayTable(data) {
     removeEmptyRecords(); // Remove empty records before displaying the table
 
-    const selectedDate = document.getElementById('dateFilter').value; // Get the selected date from the input
-    const filteredData = filterDataByDate(selectedDate, data); // Filter data by the selected date
+    const selectedDate = document.getElementById('dateFilter').value;
+    const filteredData = filterDataByDate(selectedDate, data);
 
     const tableBody = document.getElementById('tableBody');
     const dataTable = document.getElementById('dataTable');
-    tableBody.innerHTML = ''; // Clear existing contents
+    tableBody.innerHTML = '';
 
     if (!filteredData || filteredData.length === 0) {
-        dataTable.style.display = 'none'; // Hide table if no data
+        dataTable.style.display = 'none';
         return;
     }
 
-    // Show the table if data exists
-    dataTable.style.display = 'table'; // Display the table
+    dataTable.style.display = 'table';
 
     const groupedData = {};
 
-    // Group and process data
     filteredData.forEach(row => {
-        const slNo = row[0]; // Sl No. from column A
-        const date = row[1]; // Date (Date Receipt) from column D
-        const userId = row[2]; // User ID from column G
-        const url = row[3]; // URL from column I
+        const slNo = row[0];
+        const date = row[1];
+        const userId = row[2];
+        const url = row[3];
 
-        // Initialize the grouped data if the userId doesn't exist
         if (!groupedData[userId]) {
             groupedData[userId] = {
                 slNo: slNo,
                 date: date,
-                urls: new Set() // Use Set to avoid duplicate URLs
+                urls: {}
             };
         }
 
-        // Add non-empty URLs and automatically filter out duplicates using the Set
         if (url) {
-            groupedData[userId].urls.add(url.trim()); // Trim to remove extra spaces
+            groupedData[userId].urls[url.trim()] = { blocked: false };
         }
     });
 
-    // Populate the table with grouped data
     for (const userId in groupedData) {
         const userData = groupedData[userId];
         const slNo = userData.slNo;
         const date = userData.date;
-        const urls = Array.from(userData.urls); // Convert the Set back to an array
+        const urls = userData.urls;
 
-        // Create a new row for user ID
         const userRow = document.createElement('tr');
         
-        // Sl No. Cell
         const slNoCell = document.createElement('td');
         slNoCell.textContent = slNo;
-        slNoCell.classList.add('sl-no'); // Add the sl-no class
+        slNoCell.classList.add('sl-no');
         userRow.appendChild(slNoCell);
 
-        // User ID Cell
         const userIdCell = document.createElement('td');
         userIdCell.textContent = userId;
-        userIdCell.classList.add('user-id'); // Add the user-id class
+        userIdCell.classList.add('user-id');
         userRow.appendChild(userIdCell);
 
-        // Date Cell
         const dateCell = document.createElement('td');
-        dateCell.textContent = date; // Display the date in a new column
-        dateCell.classList.add('date'); // Add the date class
+        dateCell.textContent = date;
+        dateCell.classList.add('date');
         userRow.appendChild(dateCell);
 
-        // Add copy button for user ID
         const copyUserIdBtn = document.createElement('button');
         copyUserIdBtn.textContent = 'Copy User ID';
         copyUserIdBtn.classList.add('btn-copy');
         copyUserIdBtn.onclick = function () {
-            copyToClipboard(userId); // Function to copy user ID to clipboard
+            copyToClipboard(userId);
         };
-        userIdCell.appendChild(copyUserIdBtn); // Add the copy button to the user ID cell
+        userIdCell.appendChild(copyUserIdBtn);
 
-        // Add "Delete Record" button
         const deleteRecordCell = document.createElement('td');
         const deleteRecordBtn = document.createElement('button');
         deleteRecordBtn.textContent = 'Delete Record';
         deleteRecordBtn.classList.add('btn-delete');
         deleteRecordBtn.onclick = function () {
-            deleteRecord(userId); // Pass user ID to delete the entire record
+            deleteRecord(userId);
         };
-        deleteRecordCell.appendChild(deleteRecordBtn); // Add the delete record button to the row
-        userRow.appendChild(deleteRecordCell); // Append delete button cell to the row
+        deleteRecordCell.appendChild(deleteRecordBtn);
+        userRow.appendChild(deleteRecordCell);
 
-        tableBody.appendChild(userRow); // Add the user ID row to the table body
-   
-        // Create a new row for URLs
+        tableBody.appendChild(userRow);
+
         const urlsRow = document.createElement('tr');
         const urlsCell = document.createElement('td');
-        urlsCell.classList.add('urls'); // Add the urls class
-        urlsCell.colSpan = 3; // Span the cell across the required columns
+        urlsCell.classList.add('urls');
+        urlsCell.colSpan = 3;
 
-        // Create columns for each URL
-        urls.forEach((url) => {
+        Object.keys(urls).forEach((url) => {
             const urlCol = document.createElement('div');
-            urlCol.style.display = 'flex'; // Flexbox for URL and button alignment
+            urlCol.style.display = 'flex';
 
-            // Add clickable URL
             const urlText = document.createElement('a');
             urlText.textContent = url;
-            urlText.href = url; // Set the href attribute for the URL
-            urlText.target = '_blank'; // Open in a new tab
-            urlText.rel = 'noopener noreferrer'; // Security improvement
+            urlText.href = url;
+            urlText.target = '_blank';
+            urlText.rel = 'noopener noreferrer';
+            urlCol.appendChild(urlText);
 
-            urlCol.appendChild(urlText); // Append URL text
+            const blockUnblockBtn = document.createElement('button');
+            blockUnblockBtn.textContent = 'Block';
+            blockUnblockBtn.classList.add('btn-block');
+            blockUnblockBtn.style.marginLeft = '10px';
+            blockUnblockBtn.onclick = function () {
+                urls[url].blocked = !urls[url].blocked;
 
-            // Add copy button for each URL
+                if (urls[url].blocked) {
+                    blockUnblockBtn.textContent = 'Unblock';
+                    urlText.style.color = 'gray';
+                    copyUrlBtn.style.display = 'none';
+                } else {
+                    blockUnblockBtn.textContent = 'Block';
+                    urlText.style.color = '';
+                    copyUrlBtn.style.display = 'inline';
+                }
+            };
+
+            urlCol.appendChild(blockUnblockBtn);
+
             const copyUrlBtn = document.createElement('button');
             copyUrlBtn.textContent = 'Copy URL';
             copyUrlBtn.classList.add('btn-copy');
             copyUrlBtn.style.marginLeft = '10px';
+            copyUrlBtn.style.display = urls[url].blocked ? 'none' : 'inline'; // Hide if blocked
             copyUrlBtn.onclick = function () {
-                copyToClipboard(url); // Pass the URL to copy
+                copyToClipboard(url);
             };
 
-            urlCol.appendChild(copyUrlBtn); // Append copy button to URL column
+            urlCol.appendChild(copyUrlBtn);
 
-            // Add delete button for each URL
-            const deleteUrlBtn = document.createElement('button');
-            deleteUrlBtn.textContent = 'Delete URL';
-            deleteUrlBtn.classList.add('btn-delete');
-            deleteUrlBtn.style.marginLeft = '10px';
-            deleteUrlBtn.onclick = function () {
-                deleteLink(userId, url); // Pass user ID and the actual URL value to delete
-            };
-
-            urlCol.appendChild(deleteUrlBtn); // Append delete button to URL column
-            urlsCell.appendChild(urlCol); // Append the column to the row
+            urlsCell.appendChild(urlCol);
         });
 
-        urlsRow.appendChild(urlsCell); // Append URLs cell to URLs row
-        tableBody.appendChild(urlsRow); // Add the URLs row to the table body
+        urlsRow.appendChild(urlsCell);
+        tableBody.appendChild(urlsRow);
     }
 }
+
 
 // Function to filter data by selected date in "M/D/YY" format
 function filterDataByDate(selectedDate, data) {
