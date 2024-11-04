@@ -40,26 +40,28 @@ document.getElementById('loginForm').addEventListener('submit', function (e) {
     }
 });
 
-// Load CSV files from localStorage
+// Load CSV files and combined data from localStorage
 function loadFromLocalStorage() {
     const dataTable = document.getElementById('dataTable'); 
     const savedFiles = JSON.parse(localStorage.getItem('uploadedFiles')) || {};
     uploadedFiles = savedFiles;
 
+    // Load combinedData from localStorage or merge new data if combinedData is empty
     const savedCombinedData = JSON.parse(localStorage.getItem('combinedData')) || [];
     combinedData = savedCombinedData.length > 0 ? savedCombinedData : mergeDataFromFiles();
 
-    if (Object.keys(uploadedFiles).length > 0 || savedCombinedData.length > 0) {
+    // Check if there's data to display, and if so, set up the table
+    if (Object.keys(uploadedFiles).length > 0 || combinedData.length > 0) {
         headers = mergeHeadersFromFiles();
-        updateFileList(); // Update file list in the sidebar
+        updateFileList();     // Update file list in the sidebar
         updateFileSelector(); // Update file selector dropdown
-        displayTable(combinedData); 
-        dataTable.style.display = 'none';
-        // Display all data initially
+        displayTable(combinedData);  // Display table with loaded data
+    } else {
+        dataTable.style.display = 'none'; // Hide table if there's no data
     }
 }
 
-// Save the current state of uploadedFiles to localStorage
+// Save the current state of uploadedFiles and combinedData to localStorage
 function saveToLocalStorage() {
     localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
     localStorage.setItem('combinedData', JSON.stringify(combinedData));
@@ -161,28 +163,30 @@ function processCSV(file, callback) {
             if (columns.length < 9) return;
             
             // Extract the necessary columns (assuming 0-based index for A, D, G, I):
-            const slNo = columns[0]; // Column A: Sl No
-            const date = columns[3]; // Column D: Date (Date Receipt)
-            const userId = columns[6]; // Column G: User ID
-            const url = columns[8]; // Column I: URL Links
+            const slNo = columns[0].trim(); // Column A: Sl No
+            const date = columns[3].trim(); // Column D: Date (Date Receipt)
+            const userId = columns[6].trim(); // Column G: User ID
+            const url = columns[8].trim(); // Column I: URL Links
             
             // Skip empty rows or rows with no userId or URL
             if (!slNo || !date || !userId || !url) return;
 
-            // Push the selected data (Sl No, Date, User ID, URL) into the data array
-            data.push([slNo, date, userId, url]);
+            // Add a new field for status with the default value "unblocked"
+            data.push([slNo, date, userId, url, "unblocked"]);
         });
 
-        // Once the data is processed, call the callback function with the filtered data
+        // Call the callback function with processed data
         callback(data);
     };
 
     reader.readAsText(file); // Read the file as text
 }
 
-// Call this function wherever you display the table or modify the data
+
+
+
 function displayTable(data) {
-    removeEmptyRecords(); // Remove empty records before displaying the table
+    removeEmptyRecords();
 
     const selectedDate = document.getElementById('dateFilter').value;
     const filteredData = filterDataByDate(selectedDate, data);
@@ -197,14 +201,15 @@ function displayTable(data) {
     }
 
     dataTable.style.display = 'table';
-
     const groupedData = {};
 
+    // Group data by userId and store URLs with their status
     filteredData.forEach(row => {
         const slNo = row[0];
         const date = row[1];
         const userId = row[2];
         const url = row[3];
+        const status = row[4]; // "unblocked" or "blocked"
 
         if (!groupedData[userId]) {
             groupedData[userId] = {
@@ -214,11 +219,11 @@ function displayTable(data) {
             };
         }
 
-        if (url) {
-            groupedData[userId].urls[url.trim()] = { blocked: false };
-        }
+        // Store each URL with its status ("unblocked" by default)
+        groupedData[userId].urls[url] = { status: status };
     });
 
+    // Render the table rows
     for (const userId in groupedData) {
         const userData = groupedData[userId];
         const slNo = userData.slNo;
@@ -226,48 +231,27 @@ function displayTable(data) {
         const urls = userData.urls;
 
         const userRow = document.createElement('tr');
-        
+
         const slNoCell = document.createElement('td');
         slNoCell.textContent = slNo;
-        slNoCell.classList.add('sl-no');
         userRow.appendChild(slNoCell);
 
         const userIdCell = document.createElement('td');
         userIdCell.textContent = userId;
-        userIdCell.classList.add('user-id');
         userRow.appendChild(userIdCell);
 
         const dateCell = document.createElement('td');
         dateCell.textContent = date;
-        dateCell.classList.add('date');
         userRow.appendChild(dateCell);
-
-        const copyUserIdBtn = document.createElement('button');
-        copyUserIdBtn.textContent = 'Copy User ID';
-        copyUserIdBtn.classList.add('btn-copy');
-        copyUserIdBtn.onclick = function () {
-            copyToClipboard(userId);
-        };
-        userIdCell.appendChild(copyUserIdBtn);
-
-        const deleteRecordCell = document.createElement('td');
-        const deleteRecordBtn = document.createElement('button');
-        deleteRecordBtn.textContent = 'Delete Record';
-        deleteRecordBtn.classList.add('btn-delete');
-        deleteRecordBtn.onclick = function () {
-            deleteRecord(userId);
-        };
-        deleteRecordCell.appendChild(deleteRecordBtn);
-        userRow.appendChild(deleteRecordCell);
 
         tableBody.appendChild(userRow);
 
         const urlsRow = document.createElement('tr');
         const urlsCell = document.createElement('td');
-        urlsCell.classList.add('urls');
         urlsCell.colSpan = 3;
 
-        Object.keys(urls).forEach((url) => {
+        // Display each URL with its block/unblock button
+        Object.keys(urls).forEach(url => {
             const urlCol = document.createElement('div');
             urlCol.style.display = 'flex';
 
@@ -278,35 +262,40 @@ function displayTable(data) {
             urlText.rel = 'noopener noreferrer';
             urlCol.appendChild(urlText);
 
+            const urlData = urls[url];
+            urlText.style.color = urlData.status === "blocked" ? 'gray' : '';
+
+            // Block/Unblock button
             const blockUnblockBtn = document.createElement('button');
-            blockUnblockBtn.textContent = 'Block';
-            blockUnblockBtn.classList.add('btn-block');
+            blockUnblockBtn.textContent = urlData.status === "blocked" ? 'Unblock' : 'Block';
             blockUnblockBtn.style.marginLeft = '10px';
+
+            // Toggle the status on button click
             blockUnblockBtn.onclick = function () {
-                urls[url].blocked = !urls[url].blocked;
+                // Toggle status
+                urlData.status = urlData.status === "blocked" ? "unblocked" : "blocked";
+                blockUnblockBtn.textContent = urlData.status === "blocked" ? 'Unblock' : 'Block';
+                urlText.style.color = urlData.status === "blocked" ? 'gray' : '';
 
-                if (urls[url].blocked) {
-                    blockUnblockBtn.textContent = 'Unblock';
-                    urlText.style.color = 'gray';
-                    copyUrlBtn.style.display = 'none';
-                } else {
-                    blockUnblockBtn.textContent = 'Block';
-                    urlText.style.color = '';
-                    copyUrlBtn.style.display = 'inline';
+                // Update the main data array to reflect the new status
+                const dataIndex = data.findIndex(item => item[2] === userId && item[3].trim() === url);
+                if (dataIndex !== -1) {
+                    data[dataIndex][4] = urlData.status; // Update status in main data array
                 }
-            };
 
+                saveToLocalStorage(); // Save updated data to localStorage
+            };
             urlCol.appendChild(blockUnblockBtn);
 
+            // Copy URL button
             const copyUrlBtn = document.createElement('button');
             copyUrlBtn.textContent = 'Copy URL';
             copyUrlBtn.classList.add('btn-copy');
             copyUrlBtn.style.marginLeft = '10px';
-            copyUrlBtn.style.display = urls[url].blocked ? 'none' : 'inline'; // Hide if blocked
+            copyUrlBtn.style.display = urlData.status === "blocked" ? 'none' : 'inline';
             copyUrlBtn.onclick = function () {
                 copyToClipboard(url);
             };
-
             urlCol.appendChild(copyUrlBtn);
 
             urlsCell.appendChild(urlCol);
@@ -316,6 +305,10 @@ function displayTable(data) {
         tableBody.appendChild(urlsRow);
     }
 }
+
+
+
+
 
 
 // Function to filter data by selected date in "M/D/YY" format
@@ -435,10 +428,9 @@ function deleteLink(userId, urlToDelete) {
 
 // Search functionality
 document.getElementById('searchInput').addEventListener('input', function () {
-    const searchTerm = this.value.toLowerCase().trim(); // Trim any spaces from the search term
+    const searchTerm = this.value.toLowerCase().trim();
     const dataTable = document.getElementById('dataTable');
 
-    // If the search box is empty, display all combined data
     if (searchTerm === '') {
         dataTable.style.display = 'none'; // Hide table when search is cleared
     } else {
@@ -448,44 +440,41 @@ document.getElementById('searchInput').addEventListener('input', function () {
 
         // First pass: Identify all usernames where the search term exists in any field
         combinedData.forEach(row => {
-            const slNo = row[0].trim(); // Assuming Sl. No. is in column A
-            const date = row[1].trim(); // Assuming Date is in column B
-            const username = row[2].trim(); // Assuming username is in column C
-            const userId = row[3].trim(); // Assuming user ID is in column D
-            const links = row.slice(4).filter(Boolean); // Get the links (column E onward) and filter out empty cells
+            const slNo = row[0].trim();
+            const date = row[1].trim();
+            const username = row[2].trim();
+            const userId = row[3].trim();
+            const links = row.slice(4, -1).filter(Boolean); // Get the links (before the blocked status)
+            const blockedStatus = row[4] ? 'Blocked' : 'Unblocked';
 
-            // Normalize the row fields for matching
-            const normalizedRow = [slNo, date, username, userId, ...links].filter(Boolean);
+            const normalizedRow = [slNo, date, username, userId, ...links, blockedStatus].filter(Boolean);
 
-            // Check if the search term is found in any field (username, userId, links)
             const isMatching = normalizedRow.some(field => field.toString().toLowerCase().includes(searchTerm));
 
-            // If any field matches, add the username to the matched set
             if (isMatching) {
                 matchedUsernames.add(username);
-                relevantRecords.add(row); // Add full row to relevant records
+                relevantRecords.add(row);
             }
         });
 
         // Second pass: Find rows that share similarities with matched usernames
         combinedData.forEach(row => {
-            const slNo = row[0].trim(); // Sl. No.
-            const date = row[1].trim(); // Date
-            const username = row[2].trim(); // Username
-            const userId = row[3].trim(); // User ID
-            const links = row.slice(4).filter(Boolean); // Links
+            const slNo = row[0].trim();
+            const date = row[1].trim();
+            const username = row[2].trim();
+            const userId = row[3].trim();
+            const links = row.slice(4, -1).filter(Boolean);
+            const blockedStatus = row[4] ? 'Blocked' : 'Unblocked';
 
             // If this row has a matching username or has data similar to the matched results, include it
             if (matchedUsernames.has(username)) {
                 relevantRecords.add(row);
             } else {
-                // Check for similarity in fields (except Sl. No. and Date)
-                const normalizedRow = [username, userId, ...links].filter(Boolean);
+                const normalizedRow = [username, userId, ...links, blockedStatus].filter(Boolean);
                 const hasSimilarData = [...matchedUsernames].some(matchedUsername => {
                     return normalizedRow.some(field => field.toString().toLowerCase().includes(matchedUsername.toLowerCase()));
                 });
 
-                // If there's a similarity in fields except Sl. No. and Date, include the row
                 if (hasSimilarData) {
                     relevantRecords.add(row);
                 }
@@ -498,9 +487,8 @@ document.getElementById('searchInput').addEventListener('input', function () {
             const date = row[1].trim();
             const username = row[2].trim();
             const userId = row[3].trim();
-            const links = row.slice(4).filter(Boolean);
+            const links = row.slice(4, -1).filter(Boolean);
 
-            // Only include rows that have a meaningful similarity beyond Sl. No. or Date
             return !(
                 (slNo.toLowerCase().includes(searchTerm) || date.toLowerCase().includes(searchTerm)) &&
                 !username.toLowerCase().includes(searchTerm) &&
@@ -509,70 +497,66 @@ document.getElementById('searchInput').addEventListener('input', function () {
             );
         });
 
-        // Display the filtered data
+        // Display the filtered data with displayTable
         displayTable(filteredData);
     }
 });
 
 
-// Export all data as one CSV file
-document.getElementById('exportBtn').addEventListener('click', function () {
-    let csvContent = 'Username,Date,URLs\n'; // Set CSV headers
 
-    // Create an object to merge data by username
+document.getElementById('exportBtn').addEventListener('click', function () {
+    loadFromLocalStorage();
+
+    let csvContent = 'Username,Date,URLs,Status\n';
     const mergedData = {};
 
     combinedData.forEach(row => {
-        const username = row[2]; // Assuming username is in the first column
-        const date = row[1];      // Date from column D
-        const url = row[3];       // URL from column I
+        const username = row[2];
+        const date = row[1];
+        const url = row[3];
+        const blockedStatus = row[4]? "blocked": "unblocked";
 
-        // If username doesn't exist in mergedData, initialize it
         if (!mergedData[username]) {
             mergedData[username] = {
                 date: date,
-                urls: [] // Array to hold URLs
+                urls: []
             };
         }
 
-        // Add URL to the array if it's not already included
-        if (url && !mergedData[username].urls.includes(url)) {
-            mergedData[username].urls.push(url);
+        if (url && !mergedData[username].urls.find(u => u.url === url)) {
+            mergedData[username].urls.push({ url: url, status: blockedStatus });
         }
     });
 
-    // Populate the CSV content with merged data
     for (const username in mergedData) {
         const { date, urls } = mergedData[username];
-
-        // Create a new row for CSV
         const csvRow = [];
-        csvRow.push(username); // Add username to the row
-        // csvRow.push(slNo);     // Add Sl No. to the row
-        csvRow.push(date);     // Add date to the row
+        csvRow.push(username);
+        csvRow.push(date);
 
-        // Add each URL to the row, labeling them as URL 1, URL 2, etc.
-        urls.forEach((url, index) => {
-            csvRow.push(url); // Add URL to the row
+        urls.forEach(({ url, status }) => {
+            csvRow.push(url);
+            csvRow.push(status);
         });
 
-        // Fill in empty columns if there are less than the max expected columns
-        const maxUrlColumns = 10; // Define the maximum number of URL columns
+        const maxUrlColumns = 10;
         for (let i = urls.length; i < maxUrlColumns; i++) {
-            csvRow.push(''); // Add empty entries for any missing URL columns
+            csvRow.push('');
+            csvRow.push('');
         }
 
-        // Join the row and add to CSV content
-        csvContent += csvRow.join(',') + '\n'; // Join the row and add a new line
+        csvContent += csvRow.join(',') + '\n';
     }
 
-    // Download the CSV file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = 'combined_data.csv';
     link.click();
 });
+
+
+
 
 
 // Helper function to add platform-specific links to the CSV row
